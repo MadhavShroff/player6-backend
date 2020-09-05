@@ -53,9 +53,6 @@ if (config.env === 'production') {
 // v1 api routes
 app.use('/v1', routes);
 
-// static JS file for frontend code
-app.use('/javascript', express.static('javascript'));
-
 // send back a 404 error for any unknown api request
 app.use((req, res, next) => {
   next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
