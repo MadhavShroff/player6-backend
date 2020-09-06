@@ -14,4 +14,4 @@ COPY --chown=node:node . .
 
 EXPOSE 3000
 
-CMD ["node", "src/index.js"]
+CMD [ "NODE_ENV=production", "node", "src/index.js"]
