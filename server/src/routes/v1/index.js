@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const authRoute = require('./auth.route');
 const userRoute = require('./user.route');
@@ -9,8 +10,6 @@ router.use('/auth', authRoute);
 router.use('/users', userRoute);
 router.use('/docs', docsRoute);
 
-router.get('/static', (req, res) => {
-  res.sendFile('./static/script.js', { root: __dirname });
-});
+router.use('/public', express.static(path.join(__dirname, 'public')));
 
 module.exports = router;
