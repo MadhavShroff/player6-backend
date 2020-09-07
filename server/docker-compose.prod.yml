@@ -3,4 +3,4 @@ version: '3'
 services:
   node-app:
     container_name: node-app-prod
-    command:  NODE_ENV=production node src/index.js
+    command:  node src/index.js
