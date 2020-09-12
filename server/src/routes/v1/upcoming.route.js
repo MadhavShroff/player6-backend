@@ -11,6 +11,9 @@ router.get('/upcoming-three', (req, res) => {
         .sort((match1, match2) => {
           return Date.parse(match1.dateTimeGMT) - Date.parse(match2.dateTimeGMT);
         })
+        .filter((match) => {
+          return !match.matchStarted;
+        })
         .filter((match, index) => {
           return index < 3;
         });
