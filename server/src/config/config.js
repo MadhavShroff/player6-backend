@@ -29,6 +29,7 @@ if (error) {
 module.exports = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
+  passphrase: 'paaslkankpnac',
   mongoose: {
     url: envVars.MONGODB_URL,
     options: {

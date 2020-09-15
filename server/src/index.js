@@ -1,14 +1,27 @@
 const mongoose = require('mongoose');
+const https = require('https');
+const fs = require('fs');
 const app = require('./app');
 const config = require('./config/config');
 const logger = require('./config/logger');
 
 let server;
-console.log(config.mongoose.url);
+console.log(`Mongoose Connection String: ${config.mongoose.url}`);
+
 mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   logger.info('Connected to MongoDB');
-  server = app.listen(config.port, () => {
-    logger.info(`Listening to port ${config.port}`);
+  server =
+    config.env === 'production'
+      ? https.createServer(
+          {
+            pfx: fs.readFileSync('/home/player6-ssl-keyvault-player6backendcertificate.pfx'),
+            passphrase: '',
+          },
+          app
+        )
+      : https.createServer({}, app);
+  server.listen(config.port, () => {
+    logger.info(`Listening at port ${config.port}`);
   });
 });
 
