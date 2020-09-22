@@ -6,7 +6,6 @@ const docsRoute = require('./docs.route');
 const upcomingRoute = require('./upcoming.route');
 const gameLogicRoute = require('./game.route');
 
-
 const router = express.Router();
 
 router.use('/auth', authRoute);
