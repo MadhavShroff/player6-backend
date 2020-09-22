@@ -15,8 +15,6 @@ router.use('/docs', docsRoute);
 router.use('/upcoming', upcomingRoute);
 router.use('/game', gameLogicRoute);
 
-router.use('/public', express.static(path.join(__dirname, 'public')));
-
 module.exports = router;
 
 // TODO: Create routes in backend to fetch matches going on, and send to frontend, receive data and display in the matches.
