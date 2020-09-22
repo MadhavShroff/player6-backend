@@ -1,64 +1,10 @@
 $(document).ready(() => {
-    $(".product-card-1 > a").click((event) => clickListener(event, {
-        gameID: 1,
-        team1abbr: "RCB",
-        team1: "Royal Challengers Bangalore",
-        team2abbr: "SRH",
-        team2: "Sun Risers Hyderabad",
-        match_time: "7:30 PM", 
-        date: "21 September 2020",
-        entryRequirement: 1250
-    }));
-    $(".product-card-2 > a").click((event) => clickListener(event, {
-        gameID: 2,
-        team1abbr: "CSK",
-        team1: "Chennai Super Kings",
-        team2abbr: "RR",
-        team2: "Rajasthan Royals",
-        match_time: "7:30 PM", 
-        date: "22 September 2020",
-        entryRequirement: 1250
-    }));
-    $(".product-card-3 > a").click((event) => clickListener(event, {
-        gameID: 3,
-        team1abbr: "KKR",
-        team1: "Kolkata Knight Riders",
-        team2abbr: "MI",
-        team2: "Mumbai Indians",
-        match_time: "7:30 PM", 
-        date: "23 September 2020",
-        entryRequirement: 1250
-    }));
-    $(".product-card-4 > a").click((event) => clickListener(event, {
-        gameID: 4,
-        team1abbr: "RCB",
-        team1: "Royal Challengers Bangalore",
-        team2abbr: "KXIP",
-        team2: "Kings XI Punjab",
-        match_time: "7:30 PM", 
-        date: "24 September 2020",
-        entryRequirement: 1250
-    }));
-    $(".product-card-5 > a").click((event) => clickListener(event, {
-        gameID: 5,
-        team1abbr: "CSK",
-        team1: "Chennai Super Kings",
-        team2abbr: "DC",
-        team2: "Delhi Capitals",
-        match_time: "7:30 PM", 
-        date: "22 September 2020",
-        entryRequirement: 1250
-    }));
-    $(".product-card-1 > a").click((event) => clickListener(event, {
-        gameID: 6,
-        team1abbr: "SRH",
-        team1: "Sun Risers Hyderabad",
-        team2abbr: "KKR",
-        team2: "Kolkata Knight Riders",
-        match_time: "7:30 PM", 
-        date: "22 September 2020",
-        entryRequirement: 1250
-    }));
+    $(".product-card-1 > a").click((event) => clickListener(event, 1));
+    $(".product-card-2 > a").click((event) => clickListener(event, 2));
+    $(".product-card-3 > a").click((event) => clickListener(event, 3));
+    $(".product-card-4 > a").click((event) => clickListener(event, 4));
+    $(".product-card-5 > a").click((event) => clickListener(event, 5));
+    $(".product-card-1 > a").click((event) => clickListener(event, 6));
 });
 
 var clickListener = (event, gameObj) => {
@@ -66,10 +12,10 @@ var clickListener = (event, gameObj) => {
     console.log("Clicked Button with match id: " + gameObj);
 	MemberStack.onReady.then(async function(member) {
 		const metad = await member.getMetaData();
-        metad.gameState = {...metad.gameState, game: gameObj};
+        metad.gameState = {...metad.gameState, matchID: gameObj};
         metad.userInfo = {email: member["email"], memID: member["id"], name: member["name"], phone: member["phone-number"]}
   	  	member.updateMetaData(metad).then(() => {
-            fetch("http://localhost:3000/v1/game/getGame", {
+            fetch("http://localhost:3000/v1/game/createOrJoinGame", {
                 "headers": {
                     "accept": "*/*",
                     "cache-control": "no-cache",
@@ -84,25 +30,28 @@ var clickListener = (event, gameObj) => {
                 "method": "POST",
                 "mode": "cors"
             }).then(response => {
-                response.json().then( data => {
-                    if(data.status === "Waiting") {
-                        alert("Game room created. \nYou are the first player here. \nChoose a team!");
-                        window.location = "/toss-selection/toss-selection";
-                        member.updateMetaData({"gameState": {...metad.gameState, "status": "Waiting"}})
-                    }
-                    if(data.status === "Still Waiting") {
-                        alert("Already in pending match\n Please wait until we find you an opponent");
-                        $("body > div:nth-child(4) > div > div:nth-child(1)").text("Still Waiting for the other player...");
-                        member.updateMetaData({"gameState": {...metad.gameState, "status": "Waiting"}})
+                response.json().then(data => {
+                    console.log(data);
+                    if(data.status === "Waiting" || data.status === "Still Waiting") {
+                        metad.gameState.status = "Waiting";
+                        metad.gameState.joined = "First";
+                        metad.gameState.pendingID = data.pendingGameID;
+                        member.updateMetaData(metad).then(() => {
+                            alert("Game room created. \nYou are the first player here. \nChoose a team!");
+                            window.location = "/toss-selection/toss-selection";
+                        });
                     }
                     if(data.status === "Paired") {      // Paired with waiting player, second to arrive
-                        alert("Paired with opponent!\n Your opponent is : " + data.user1.name);
-                        window.location = "/toss-selection/toss-selection";
-                        $("body > div:nth-child(4) > div > div:nth-child(1)").text("Found Match!");
-                        console.log(data)
-                        member.updateMetaData({"gameState": {...metad.gameState, "status": "Paired", user1: data.user1}})
+                        metad.gameState.status = "Paired";
+                        metad.gameState.joined = "Second";
+                        metad.gameState.user1 = data.user1;
+                        metad.gameState.gameID = data.gameID;
+                        $("body > div:nth-child(4) > div > div:nth-child(1)").text("Found MGame!");
+                        member.updateMetaData(metad).then(() => {
+                            alert("Paired with opponent!\n You are second in the room, wait for your opponent to choose a team for the toss\n Your opponent is : " + data.user1.name);
+                            window.location = "/toss-selection/toss-selection-results";
+                        });
                     }
-                    console.log(data);
                 })
             }).catch( err => {
                 console.log('Fetch Error :-S', err);
