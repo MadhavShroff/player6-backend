@@ -14,7 +14,7 @@ var clickListener = (event, contest) => {
 		const metad = await member.getMetaData();
 		metad.gameState = {...metad.gameState, contestChosen: contest};
   	  	member.updateMetaData(metad).then(() => {
-   	  		window.location = "/select-match/select-match";
+   	  		window.location = "/select-match/select-match-testing";
    	  	});
     });
 };

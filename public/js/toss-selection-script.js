@@ -7,7 +7,6 @@ $(document).ready(() => {
             event.preventDefault();
             metad.gameState.tossSelection = matchCards[metad.gameState.matchID].team2abbr;
             member.updateMetaData(metad).then(() => {
-                alert("Toss Selection: " + metad.gameState.tossSelection);
                 window.location = "/toss-selection/toss-selection-results";
             });
         });
@@ -15,7 +14,6 @@ $(document).ready(() => {
             event.preventDefault();
             metad.gameState.tossSelection = matchCards[metad.gameState.matchID].team1abbr;
             member.updateMetaData(metad).then(() => {
-                alert("Toss Selection: " + metad.gameState.tossSelection);
                 window.location = "/toss-selection/toss-selection-results";
             });
         });

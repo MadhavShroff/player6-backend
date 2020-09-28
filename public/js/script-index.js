@@ -1,5 +1,5 @@
 $(document).ready(() => {
-      fetch("/v1/upcoming/upcoming-three", {
+      fetch("https://player6backendweb.com/v1/upcoming/upcoming-three", {
             method: "GET",
             headers: {
                 'Accept': 'application/json',

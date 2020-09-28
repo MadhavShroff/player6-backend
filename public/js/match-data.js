@@ -1,3 +1,15 @@
+const playersInTeam = {
+    "RCB" : [
+
+    ],
+    "SRH" : [
+
+    ],
+    "KKR" : [
+        
+    ]
+}
+
 const matchCards = {
     1: {
         matchID: 1,

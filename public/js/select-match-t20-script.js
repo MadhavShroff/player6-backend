@@ -5,6 +5,8 @@ $(document).ready(() => {
     $(".product-card-4 > a").click((event) => clickListener(event, 4));
     $(".product-card-5 > a").click((event) => clickListener(event, 5));
     $(".product-card-1 > a").click((event) => clickListener(event, 6));
+    $('body > div:nth-child(4) > div > div:nth-child(1)').text("");
+    $("body > div:nth-child(4) > div > div.text-block-16.found-match").text("");
 });
 
 var clickListener = (event, gameObj) => {
@@ -15,7 +17,8 @@ var clickListener = (event, gameObj) => {
         metad.gameState = {...metad.gameState, matchID: gameObj};
         metad.userInfo = {email: member["email"], memID: member["id"], name: member["name"], phone: member["phone-number"]}
   	  	member.updateMetaData(metad).then(() => {
-            fetch("http://localhost:3000/v1/game/createOrJoinGame", {
+            lookingStart();
+            fetch("https://player6backendweb.com/v1/game/createOrJoinGame", {
                 "headers": {
                     "accept": "*/*",
                     "cache-control": "no-cache",
@@ -37,20 +40,26 @@ var clickListener = (event, gameObj) => {
                         metad.gameState.joined = "First";
                         metad.gameState.pendingID = data.pendingGameID;
                         member.updateMetaData(metad).then(() => {
-                            alert("Game room created. \nYou are the first player here. \nChoose a team!");
-                            window.location = "/toss-selection/toss-selection";
+                            lookingStop("You are the first player in the room. Continue to Toss Selection!");
+                            setTimeout(() => {
+                                window.location = "/toss-selection/toss-selection";
+                            }, 3000);
                         });
-                    }
-                    if(data.status === "Paired") {      // Paired with waiting player, second to arrive
+                    } else if(data.status === "Paired") {      
                         metad.gameState.status = "Paired";
                         metad.gameState.joined = "Second";
                         metad.gameState.user1 = data.user1;
                         metad.gameState.gameID = data.gameID;
-                        $("body > div:nth-child(4) > div > div:nth-child(1)").text("Found MGame!");
+                        $("body > div:nth-child(4) > div > div:nth-child(1)").text("Found Game!");
                         member.updateMetaData(metad).then(() => {
-                            alert("Paired with opponent!\n You are second in the room, wait for your opponent to choose a team for the toss\n Your opponent is : " + data.user1.name);
-                            window.location = "/toss-selection/toss-selection-results";
+                            lookingStop("Paired with opponent! You are second in the room, wait for opponent's Toss Selection. Your opponent is : " + data.user1.name);
+                            setTimeout(() => {
+                                window.location = "/toss-selection/toss-selection-results";
+                            }, 3000);
                         });
+                    } else {
+                        lookingStop("Internal Server Error. Please try again or contact administrator");
+                        console.log("Internal Server Error!!");
                     }
                 })
             }).catch( err => {
@@ -59,3 +68,29 @@ var clickListener = (event, gameObj) => {
    	  	});
     });
 };
+
+var isStop = false;
+dots = ".";
+oneDot = ".";
+var i = 0;
+
+function lookingStart() {    
+    setTimeout(function() {  
+        $('body > div:nth-child(4) > div > div:nth-child(1)').text("Looking for Games" + dots);
+        dots = dots + oneDot; i++;
+        if(i == 4) {
+            i = 0;
+            dots = "";
+        }
+        if (!isStop) { 
+            lookingStart();
+        }
+    }, 750);
+}
+
+function lookingStop(someText) {
+    isStop = true;
+    setTimeout(function() { 
+        $('body > div:nth-child(4) > div > div:nth-child(1)').text(someText);
+    }, 1000);
+}

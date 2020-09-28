@@ -1,4 +1,5 @@
 const { assert } = require('console');
+const e = require('express');
 const express = require('express');
 
 const router = express.Router();
@@ -10,8 +11,12 @@ const { findOne } = require('../../models/user.model');
 //TODO: 
 // On choose a contest page, read game state from metadata and redirect to appropriate page. 
 //
-
 // Game logic route
+let globalClient;
+MongoClient.connect(config.mongoose.url, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
+    globalClient = client;
+});
+
 router.post('/createOrJoinGame', (req, response) => {
   const { gameState } = req.body;
   const { userInfo } = req.body;
@@ -66,11 +71,7 @@ router.post('/createOrJoinGame', (req, response) => {
 });
 
 router.post("/getGame", (req, res) => {
-    //If req.tossSelection is null and player is second, return tossSelection String inverse of first player. 
-    //If req.tossSelection is populated and player is First, add tossSelection to game Object. 
-    MongoClient.connect(config.mongoose.url, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
-        if(err) res.status(500).send();
-        const db = client.db('games');
+        const db = globalClient.db('games');
         db.collection('matchedGames').findOne({pendingGameID : req.body.pendingID}, (err, result) => {
             var game = result;
             if(result == null) {
@@ -83,15 +84,13 @@ router.post("/getGame", (req, res) => {
                     res.send({isData: false, status: "Failure", err: "Inconsistency Error"});
                 } else {
                     if( (req.body.tossSelection == null || req.body.tossSelection == "undefined") && req.body.userNum == "Second") {
-                            db.collection('matchedGames').findOne(game).then(() => {
-                                res.send({
-                                    isData: true, 
-                                    "gameID": result._id, 
-                                    "user2": {...result.user2}, 
-                                    "user1": {...result.user1},
-                                    tossSelection: result.tossSelection == null ? "undefined" : result.tossSelection.user2
-                                });
-                            });
+                        res.send({
+                            isData: true, 
+                            "gameID": result._id, 
+                            "user2": {...result.user2}, 
+                            "user1": {...result.user1},
+                            tossSelection: result.tossSelection == null ? "undefined" : result.tossSelection.user2
+                        });
                     } else if(req.body.tossSelection != null && req.body.userNum == "First") {
                         db.collection('matchedGames').deleteOne(result).then(() => {
                             game = {...result, tossSelection: {
@@ -115,7 +114,58 @@ router.post("/getGame", (req, res) => {
                 }
             }
         });
-    });
 })
+
+router.post("/makeSelection", (req, res) => {
+        const db = globalClient.db('games');
+        db.collection('matchedGames').findOne({"pendingGameID" : req.body.gameID}).then((result) => {
+            if(result == null) {
+                res.send({isData: false, queryResult: "null"});
+            } else {
+                db.collection('matchedGames').deleteOne(result).then(() => {
+                    var selection = result.playerSelection;
+                    if(selection == null) selection = {user1: [], user2: []};
+                    if(req.body.joined === "First") {
+                        selection.user1.indexOf(req.body.playerSelected) === -1 && selection.user1.push(req.body.playerSelected);
+                    } else {
+                        selection.user2.indexOf(req.body.playerSelected) === -1 && selection.user2.push(req.body.playerSelected);
+                    }
+                    var game = {...result};
+                    game.playerSelection = selection;
+                    game.playerSelection.isNew = true;
+                    db.collection('matchedGames').insertOne(game).then(() => {
+                        res.send({
+                            "isData": true, 
+                            "gameID": result._id, 
+                            "playerSelection": game.playerSelection,
+                            "user2": {...result.user2}, 
+                            "user1": {...result.user1},
+                            "tossSelection": req.body.tossSelection,
+                            "isNew": "isNew" in result.playerSelection ? result.playerSelection.isNew : true
+                        });
+                    });
+                }) ;
+            }
+        });
+});
+
+router.post("/getPlayerSelection", (req, res) => {
+        const db = globalClient.db('games');
+        db.collection('matchedGames').findOneAndUpdate({"pendingGameID" : req.body.gameID}, {$set: {"playerSelection.isNew": false}}, {upsert: false}).then((result) => {
+            if(result == null) {
+                res.send({isData: false, queryResult: "null"});
+            } else {
+                if(result.value !== null) res.send({
+                    "isData": true, 
+                    "gameID": result.value._id, 
+                    "playerSelection": result.value.playerSelection,
+                    "user2": {...result.value.user2}, 
+                    "user1": {...result.value.user1},
+                    "isNew": true
+                });
+                else res.send({isData: false, queryResult: "null"});
+            }
+        });
+});
 
 module.exports = router;
