@@ -25,7 +25,7 @@ $(document).ready(() => {
 });
 
 function refreshPlayerSelection(metad) {
-    fetch("https://player6backendweb.com/v1/game/makeSelection", {
+    fetch("https://player6backendweb.com/v1/game/getPlayerSelection", {
     // fetch("http://localhost:3000/v1/game/getPlayerSelection", {
         "headers": {
             "accept": "*/*",
