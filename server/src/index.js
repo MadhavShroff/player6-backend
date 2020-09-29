@@ -22,6 +22,10 @@ io.on('connection', (socket) => {
   console.log('a user connected');
 });
 
+io.on('hello', (socket) => {
+  console.log("Hey there");
+})
+
 const exitHandler = () => {
   if (server) {
     server.close(() => {
