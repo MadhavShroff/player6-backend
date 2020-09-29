@@ -4,16 +4,22 @@ const fs = require('fs');
 const app = require('./app');
 const config = require('./config/config');
 const logger = require('./config/logger');
-const expressWs = require('express-ws')(app);
 
-let server;
 console.log(`Mongoose Connection String: ${config.mongoose.url}`);
 
 mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   logger.info('Connected to MongoDB');
-  server = app.listen(config.port, () => {
-    logger.info(`Listening to port ${config.port}`);
-  });
+});
+
+server = app.listen(config.port, () => {
+  logger.info(`Listening to port ${config.port}`);
+  console.log()
+});
+
+var io = require('socket.io')(server);
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
 });
 
 const exitHandler = () => {

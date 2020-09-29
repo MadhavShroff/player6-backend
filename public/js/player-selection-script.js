@@ -115,7 +115,7 @@ function registerClickEvent(card, metad) {
 var checkTimer = 2000;
 var gotData = false;
 function startChecking() {
-    console.log("Started Checking");
+    console.log("Checking...");
     setTimeout(() => {
         if(!gotData) {
             MemberStack.onReady.then(async function(member) {

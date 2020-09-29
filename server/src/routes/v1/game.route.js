@@ -36,7 +36,7 @@ router.post('/createOrJoinGame', (req, response) => {
           console.log(game.gameInfo);
           console.log(userInfo);
           db.collection('pendingGames').insertOne(game, (err, res) => {
-              console.log(res);
+            console.log(res);
             response.send({
                 status: 'Waiting',
                 description: 'Player is first in the room, waiting for second player to initiate game',
@@ -93,7 +93,8 @@ router.post("/getGame", (req, res) => {
                         });
                     } else if(req.body.tossSelection != null && req.body.userNum == "First") {
                         db.collection('matchedGames').deleteOne(result).then(() => {
-                            game = {...result, tossSelection: {
+                            game = {...result, 
+                                tossSelection: {
                                     user1: req.body.tossSelection,
                                     user2: req.body.tossSelection == req.body.teams[0] ? req.body.teams[1] : req.body.teams[0]
                                 }
@@ -107,7 +108,7 @@ router.post("/getGame", (req, res) => {
                                     tossSelection: req.body.tossSelection
                                 });
                             });
-                        }) ;
+                        });
                     } else {
                         console.log("else " + req.body.tossSelection + " " + req.body.pendingID + " " + req.body.userNum);
                     }

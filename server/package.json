@@ -70,6 +70,7 @@
     "passport-jwt": "^4.0.0",
     "pem": "^1.14.4",
     "pm2": "^4.4.1",
+    "socket.io": "^2.3.0",
     "swagger-jsdoc": "^4.0.0",
     "swagger-ui-express": "^4.1.4",
     "validator": "^13.0.0",
