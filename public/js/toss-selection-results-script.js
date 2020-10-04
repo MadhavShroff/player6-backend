@@ -3,6 +3,7 @@ var $a = $("<a>", {id: "refresh-page", "href":""});
 $a.text("Refresh");
 $div.append($a)
 
+let metadata;
 //Refresh click action
 
 async function checkForOpponent(id, tossSel, userNum, matchID) {
@@ -35,6 +36,7 @@ async function checkForOpponent(id, tossSel, userNum, matchID) {
                         member.updateMetaData(metad).then(() => {
                             refreshData(metad, false);
                         });
+                        metadata = metad;
                     });
                 }   
             });
@@ -45,12 +47,15 @@ async function checkForOpponent(id, tossSel, userNum, matchID) {
 
 $(document).ready(() => {
     MemberStack.onReady.then(async function(member) {
-        const metad = await member.getMetaData();
-        refreshData(metad, true);
-        $a.click((event) => { // Refresh button click listener. 
+        metadata = await member.getMetaData();
+        refreshData(metadata, true);
+        $a.click(async function(event) { // Refresh button click listener. 
             event.preventDefault();
-            refreshData(metad, true);
+            refreshData(metadata, true);
         })
+        setInterval(() => {
+            refreshData(metadata, true);
+        }, 15000);
     });
 });
 

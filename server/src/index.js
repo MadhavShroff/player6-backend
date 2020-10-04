@@ -13,18 +13,30 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
 
 server = app.listen(config.port, () => {
   logger.info(`Listening to port ${config.port}`);
-  console.log()
+  console.log();
 });
 
-var io = require('socket.io')(server);
+const io = require('socket.io')(server);
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
-});
+  console.log('User connected');
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
 
-io.on('hello', (socket) => {
-  console.log("Hey there");
-})
+  socket.on('arrived at player selection', (gameID) => {
+    socket.join(gameID);
+  });
+
+  socket.on('hello', (msg) => {
+    console.log('received hello');
+    socket.emit('hello', 'Hey there');
+  });
+
+  socket.on('player selected', (data) => {
+    io.to(data.gameID).emit('player update', data);
+  });
+});
 
 const exitHandler = () => {
   if (server) {
