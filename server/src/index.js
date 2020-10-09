@@ -1,6 +1,4 @@
 const mongoose = require('mongoose');
-const https = require('https');
-const fs = require('fs');
 const app = require('./app');
 const config = require('./config/config');
 const logger = require('./config/logger');
@@ -28,7 +26,7 @@ io.on('connection', (socket) => {
     socket.join(gameID);
   });
 
-  socket.on('hello', (msg) => {
+  socket.on('hello', () => {
     console.log('received hello');
     socket.emit('hello', 'Hey there');
   });

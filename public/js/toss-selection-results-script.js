@@ -55,7 +55,7 @@ $(document).ready(() => {
         })
         setInterval(() => {
             refreshData(metadata, true);
-        }, 15000);
+        }, 5000);
     });
 });
 

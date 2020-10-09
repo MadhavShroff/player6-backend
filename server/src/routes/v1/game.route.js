@@ -1,11 +1,9 @@
 const { assert } = require('console');
-const e = require('express');
 const express = require('express');
 
 const router = express.Router();
 const { MongoClient } = require('mongodb');
 const config = require('../../config/config');
-const { findOne } = require('../../models/user.model');
 
 // TODO:
 // On choose a contest page, read game state from metadata and redirect to appropriate page.
@@ -32,7 +30,7 @@ router.post('/createOrJoinGame', (req, response) => {
     db.collection('pendingGames')
       .find({ gameInfo: game.gameInfo })
       .toArray((err, res) => {
-        if (res.length == 0) {
+        if (res.length === 0) {
           console.log(
             `No game exists with following parameters, Player (${userInfo.name}, ${userInfo.email}) is first in the room, waiting...`
           );
@@ -170,15 +168,17 @@ router.post('/getPlayerSelection', (req, res) => {
     .then((result) => {
       if (result == null) {
         res.send({ isData: false, queryResult: 'null' });
-      } else if (result.value !== null)
+      } else {
+        let selection = result.playerSelection;
+        if (selection == null) selection = { user1: [], user2: [] };
         res.send({
           isData: true,
           gameID: result._id,
-          playerSelection: result.playerSelection,
+          playerSelection: selection,
           user2: { ...result.user2 },
           user1: { ...result.user1 },
         });
-      else res.send({ isData: false, queryResult: 'null' });
+      }
     });
 });
 

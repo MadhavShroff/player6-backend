@@ -71,8 +71,8 @@ function onPlayerSelect(event, card, metad) {
 }
 
 function refreshPlayerSelection(metad) {
-    fetch("https://player6backendweb.com/v1/game/getPlayerSelection", {
-    // fetch("http://localhost:3000/v1/game/getPlayerSelection", {
+    // fetch("https://player6backendweb.com/v1/game/getPlayerSelection", {
+    fetch("http://localhost:3000/v1/game/getPlayerSelection", {
         "headers": {
             "accept": "*/*",
             "cache-control": "no-cache",
