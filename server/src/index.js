@@ -33,6 +33,7 @@ io.on('connection', (socket) => {
 
   socket.on('player selected', (data) => {
     io.to(data.gameID).emit('player update', data);
+    console.log("Player Selected event");
   });
 });
 

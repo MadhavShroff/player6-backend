@@ -46,6 +46,7 @@ async function checkForOpponent(id, tossSel, userNum, matchID) {
 }
 
 $(document).ready(() => {
+    $("body > div.section-9 > div > a").hide() //
     MemberStack.onReady.then(async function(member) {
         metadata = await member.getMetaData();
         refreshData(metadata, true);
@@ -54,13 +55,19 @@ $(document).ready(() => {
             refreshData(metadata, true);
         })
         setInterval(() => {
+            reload_js("https://player6-backend-1b41jo.surge.sh/js/match-data.js");
             refreshData(metadata, true);
         }, 5000);
     });
 });
 
+function reload_js(src) {
+    $('script[src="' + src + '"]').remove();
+    $('<script>').attr('src', src).attr('type', "text/javascript").appendTo('head');
+}
 function refreshData(metad, check) { 
     var id = null;
+    $("body > div.container-5.w-container").text("");
     if(metad.gameState.pendingID == null) {
         if(metad.gameState.gameID != null) {
             id = metad.gameState.gameID
@@ -68,10 +75,14 @@ function refreshData(metad, check) {
     } else {
         id = metad.gameState.pendingID
     }
+    if(matchCards[metad.gameState.matchID].tossResults !== "Undeclared") {
+        $("body > div.section-9 > div > a").show();
+        appendString("Toss Results: " + "Declared!");
+    } else {
+        appendString("Toss Results: " + "Waiting...");
+    }
     //determine user number
     if(id != null && check) checkForOpponent(id, metad.gameState.tossSelection, metad.gameState.joined, metad.gameState.matchID);
-    $("body > div.container-5.w-container").text("");
-    appendString("Toss Results: " + "Waiting...")
     if("tossSelection" in metad.gameState) {
         if(metad.gameState.tossSelection != "undefined")
             appendString("Team Chosen: " + metad.gameState.tossSelection);
@@ -96,6 +107,7 @@ function refreshData(metad, check) {
     }
     appendString("Opponent: " + opponent);
     $("body > div.container-5.w-container").append($div);
+    
 }    
 
 function appendString(s) {

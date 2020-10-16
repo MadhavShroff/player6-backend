@@ -13,5 +13,4 @@ $(document).ready(() => {
         }).catch( err => {
             console.log('Fetch Error :-S', err);
         });
-      $('#upcoming-heading-1').text("Hello Players");
     });

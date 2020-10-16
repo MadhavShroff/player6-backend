@@ -85,12 +85,10 @@ function lookingStart() {
         if (!isStop) { 
             lookingStart();
         }
-    }, 750);
+    }, 500);
 }
 
 function lookingStop(someText) {
     isStop = true;
-    setTimeout(function() { 
-        $('body > div:nth-child(4) > div > div:nth-child(1)').text(someText);
-    }, 1000);
+    $('body > div:nth-child(4) > div > div:nth-child(1)').text(someText);
 }
