@@ -138,9 +138,9 @@ router.post('/makeSelection', (req, res) => {
             let selection = result.playerSelection;
             if (selection == null) selection = { user1: [], user2: [] };
             if (req.body.userID === result.user1.memID) {
-              selection.user1.indexOf(req.body.playerSelected) === -1 && selection.user1.push(req.body.playerSelected);
+              selection.user1.push(req.body.playerSelected);
             } else {
-              selection.user2.indexOf(req.body.playerSelected) === -1 && selection.user2.push(req.body.playerSelected);
+              selection.user2.push(req.body.playerSelected);
             }
             const game = { ...result };
             game.playerSelection = selection;

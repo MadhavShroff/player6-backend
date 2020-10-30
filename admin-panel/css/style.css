@@ -1,0 +1,90 @@
+.card {
+    margin: 0.5em;
+}
+
+.card-columns {
+    column-count: 3;
+    margin: 1em;
+}
+
+body > div > div > div > div.btn-group {
+    margin-top: 0.5em;
+    margin-left: 0.5em;
+    align-self: center;
+}
+
+@media screen and (max-width: 992px) {
+    .card-columns {
+      column-count: 2;
+    }
+}
+@media screen and (max-width: 780px) {
+    .card-columns {
+      column-count: 1;
+    }
+}
+
+body > div > div:nth-child(2) > div.col-md-8 > div.row > * {
+    padding: 0em;
+}
+
+* {
+    box-sizing: border-box;
+    font-family: "Avenir", "Helvetica", sans-serif;
+    font-size: medium;
+}
+
+body {
+    background-color: #f9f9f9;
+}
+
+table {
+    border-collapse: collapse;
+    text-align: left;
+    width: 100%;
+}
+table tr {
+    border-bottom: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+}
+table th, table td {
+    padding: 0.2em;
+}
+table td {
+    border: 1px solid;
+    margin: 0 -1px -1px 0;
+    padding-top: 30px;
+    position: relative;
+    width: 50%;
+}
+table td.single {
+    border: 1px solid;
+    margin: 0 -1px -1px 0;
+    padding-top: 30px;
+    position: relative;
+    width: 100%;
+}
+table td span {
+    background: #eee;
+    color: dimgrey;
+    display: block;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 5px;
+    position: absolute;
+    text-transform: uppercase;
+    top: 0;
+    left: 0;
+}
+table td div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+table thead {
+    left: -9999px;
+    position: absolute;
+    visibility: hidden;
+}

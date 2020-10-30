@@ -17,7 +17,9 @@ matchCards = {
                 "Shane Watson", "Faf Du Plesis","Ambati Rayudu", "Kedar Jadhav","MS Dhoni", "Ravindra Jadeja","Dwaye Bravo", "Sam Curran","Shardul Thakur", "Deepak Chahar","Piyush Chawla",
             ]
         },
-        tossResults: "Undeclared"
+        tossResults: "CSK",
+        matchWinner: "Undeclared",
+        coverImgHref: "https://media.istockphoto.com/photos/closeup-of-red-cricket-ball-and-bat-sitting-on-grass-picture-id177427917?k=6&m=177427917&s=612x612&w=0&h=-q2U1BYuDKX2qQa7DcwTQ6PhkJifJcuuwo1HlpCjfC8="
     },
     2: {
         matchID: 2,
@@ -28,7 +30,17 @@ matchCards = {
         match_time: "7:30 PM", 
         date: "22 September 2020",
         entryRequirement: 1250,
-        tossResults: "RR"
+        players : {
+            team1: [
+                "Devdutt Padikkal", "Aaron Finch","Virat Kohli", "AB De Villiers","Moeen Ali", "Washington Sundar","Shivam Dube", "Chris Morris","Navdeep Saini", "Mohammad Siraj","Yuzvedra Chahal",
+            ],
+            team2: [
+                "Shane Watson", "Faf Du Plesis","Ambati Rayudu", "Kedar Jadhav","MS Dhoni", "Ravindra Jadeja","Dwaye Bravo", "Sam Curran","Shardul Thakur", "Deepak Chahar","Piyush Chawla",
+            ]
+        },
+        tossResults: "RR",
+        matchWinner: "Undeclared",
+        coverImgHref: null,
     },
     3: {
         matchID: 3,
@@ -47,7 +59,9 @@ matchCards = {
                 "Rahul Tripathi", "Shubman Gill","Sunil Narine", "Eoin Morgan","Dinesh Karthik", "Andre Russell","Nitish Rana", "Kamlesh Nagarkoti","Varun Chakravarthy", "Prasidh Krishna","Pat Cummins"
             ]
         },
-        tossResults: "MI"
+        tossResults: "KKR",
+        matchWinner: "Undeclared",
+        coverImgHref: null,
     },
     4: {
         matchID: 4,
@@ -58,7 +72,17 @@ matchCards = {
         match_time: "7:30 PM", 
         date: "24 September 2020",
         entryRequirement: 1250,
-        tossResults: "Undeclared"
+        players : {
+            team1: [
+                "Devdutt Padikkal", "Aaron Finch","Virat Kohli", "AB De Villiers","Moeen Ali", "Washington Sundar","Shivam Dube", "Chris Morris","Navdeep Saini", "Mohammad Siraj","Yuzvedra Chahal",
+            ],
+            team2: [
+                "Shane Watson", "Faf Du Plesis","Ambati Rayudu", "Kedar Jadhav","MS Dhoni", "Ravindra Jadeja","Dwaye Bravo", "Sam Curran","Shardul Thakur", "Deepak Chahar","Piyush Chawla",
+            ]
+        },
+        tossResults: "RCB",
+        matchWinner: "Undeclared",
+        coverImgHref: null,
     },
     5: {
         matchID: 5,
@@ -69,7 +93,17 @@ matchCards = {
         match_time: "7:30 PM", 
         date: "22 September 2020",
         entryRequirement: 1250,
-        tossResults: "Undeclared"
+        players : {
+            team1: [
+                "Devdutt Padikkal", "Aaron Finch","Virat Kohli", "AB De Villiers","Moeen Ali", "Washington Sundar","Shivam Dube", "Chris Morris","Navdeep Saini", "Mohammad Siraj","Yuzvedra Chahal",
+            ],
+            team2: [
+                "Shane Watson", "Faf Du Plesis","Ambati Rayudu", "Kedar Jadhav","MS Dhoni", "Ravindra Jadeja","Dwaye Bravo", "Sam Curran","Shardul Thakur", "Deepak Chahar","Piyush Chawla",
+            ]
+        },
+        tossResults: "DC",
+        matchWinner: "Undeclared",
+        coverImgHref: null,
     },
     6: {
         matchID: 6,
@@ -80,6 +114,16 @@ matchCards = {
         match_time: "7:30 PM", 
         date: "22 September 2020",
         entryRequirement: 1250,
-        tossResults: "Undeclared"
+        players : {
+            team1: [
+                "Devdutt Padikkal", "Aaron Finch","Virat Kohli", "AB De Villiers","Moeen Ali", "Washington Sundar","Shivam Dube", "Chris Morris","Navdeep Saini", "Mohammad Siraj","Yuzvedra Chahal",
+            ],
+            team2: [
+                "Shane Watson", "Faf Du Plesis","Ambati Rayudu", "Kedar Jadhav","MS Dhoni", "Ravindra Jadeja","Dwaye Bravo", "Sam Curran","Shardul Thakur", "Deepak Chahar","Piyush Chawla",
+            ]
+        },
+        tossResults: "SRH",
+        matchWinner: "Undeclared",
+        coverImgHref: null,
     }
  }

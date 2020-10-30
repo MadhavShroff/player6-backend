@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://player6-backend-1b41jo.surge.sh/js/match-data.js" type="text/javascript"></script>
+	<script src="https://unpkg.com/micromodal/dist/micromodal.min.js" type="text/javascript"></script>
+	<script src="https://unpkg.com/tether@1.4.0/dist/js/tether.js" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+	<link href="css/style.css" rel="stylesheet">
+	<script>
+		$(document).ready( () => {
+			$.each(matchCards, (idx, match) => {
+				console.log(idx);
+				$(`#match-name-${idx}`).text("" + match.team1abbr + " vs " + match.team2abbr);
+				$(`#match-id-${idx}`).text(match.matchID);
+				$(`#team1-${idx}`).text(match.team1);
+				$(`#team2-${idx}`).text(match.team2);
+				$(`#team1-abbr-${idx}`).text(match.team1abbr);
+				$(`#team2-abbr-${idx}`).text(match.team2abbr);
+				$(`#date-${idx}`).text(match.date);
+				$(`#time-${idx}`).text(match.match_time);
+				$(`#entryReq-${idx}`).text(match.entryRequirement);
+				$(`#team1-players-${idx}`).innerHTML = "";
+				$.each(match.players.team1, (index, na) => {
+					$div = $("<div>", {"class":"badge badge-pill badge-primary mr-1 p-1"}).text(na);
+					$(`#team1-players-${idx}`).append($div);
+				})
+				$.each(match.players.team2, (index, na) => {
+					$div = $("<div>", {"class":"badge badge-pill badge-primary mr-1 p-1"}).text(na);
+					$(`#team2-players-${idx}`).append($div);
+				})
+				$(`#toss-${idx}`).text(match.tossResults);
+				$(`#winner-${idx}`).text(match.matchWinner);
+				if( match.coverImgHref === null ) $(`#cover-img-${idx}`).text("null");
+				else $("#cover-img-1").prepend($('<img>',{id:'coverImg', src:match.coverImgHref, style: "width: 100%"})); // set cover image in grid
+				$(`#edit-${idx}`).click(() => {	
+					$("#modal-match-name").val("Edit Match - " + match.team1abbr + " vs " + match.team2abbr);
+					$(`#modal-match-id`).val(match.matchID);
+					$(`#modal-team1`).val(match.team1);
+					$(`#modal-team2`).val(match.team2);
+					$(`#modal-team1-abbr`).val(match.team1abbr);
+					$(`#modal-team2-abbr`).val(match.team2abbr);
+					$(`#modal-date`).val(match.date);
+					$(`#modal-time`).val(match.match_time);
+					$(`#modal-entryReq`).val(match.entryRequirement);
+					$(`#modal-cover-img`).val(match.coverImgHref);
+					$("#editModal").modal("show");
+				})
+				$(`#declare-${idx}`).click(() => {
+					$("#declare-modal-match-name").text("Declare Toss for " + match.team1abbr + " vs " + match.team2abbr);
+					$("#declareModal").modal("show");
+				})
+			})
+		})
+	</script>
+</head>
+<body>
+    <div class="container-fluid">
+	<div class="row">
+		<div class="col-md-12 p-2">
+			<h2 class="text-center margin mt-3">Player6 - Admin Panel</h2>
+			<div class="card-columns m-0 p-3">
+				<div class="card" id="card-1">
+				  <div class="card-body">
+					<h3 class="card-title" id="match-name-1">Match name</h3>
+					<table>
+						<tbody>
+							<tr>
+								<td><span>Match ID </span> <div id="match-id-1">1</div><a></a></td>
+								<td><span>Team 1 </span> <div id="team1-1">Kolkata Knight Riders</div></td>
+								<td><span>Team 1 abbr </span> <div id="team1-abbr-1"> </div></td>
+								<td><span>Team 2 </span><div id="team2-1"> </div></td>
+								<td><span>Team 2 abbr</span><div id="team2-abbr-1"> </div></td>
+								<td><span>Date</span><div id="date-1"> </div></td>
+								<td><span>Time</span><div id="time-1"> </div></td>
+								<td><span>Entry Req.</span><div id="entryReq-1"> </div></td>
+								<td><span>Toss Result</span><div id="toss-1"></div></td>
+								<td><span>Match Winner</span><div id="winner-1"></div></td>
+								<td><span>Cover Image href</span><div id="cover-img-1"></div></td>
+							</tr>
+						</tbody>
+						<td class="single"><span>Team 1 Players</span><div id="team1-players-1"> </div></td>
+						<td class="single"><span>Team 2 Players</span><div id="team2-players-1"> </div></td>
+					</table>
+					<div class="btn-group" role="group">
+						<button class="btn btn-secondary" type="button" id="edit-1">
+							Edit
+						</button> 
+						<button class="btn btn-secondary checked" type="button" id="declare-1">
+							Declare Toss
+						</button>
+					</div>
+				  </div>
+				</div>
+				<div class="card" id="card-2">
+					<div class="card-body">
+					  <h3 class="card-title" id="match-name-2">Match name</h3>
+					  <table>
+						<tbody>
+							<tr>
+								<td><span>Match ID </span> <div id="match-id-2">2</div></td>
+								<td><span>Team 1 </span> <div id="team1-2"> Someone</div></td>
+								<td><span>Team 1 abbr </span> <div id="team1-abbr-2"> </div></td>
+								<td><span>Team 2 </span><div id="team2-2"> </div></td>
+								<td><span>Team 2 abbr</span><div id="team2-abbr-2"> </div></td>
+								<td><span>Date</span><div id="date-2"> </div></td>
+								<td><span>Time</span><div id="time-2"> </div></td>
+								<td><span>Entry Req.</span><div id="entryReq-2"> </div></td>
+								<td><span>Toss Result</span><div id="toss-2"></div></td>
+								<td><span>Match Winner</span><div id="winner-2"></div></td>
+								<td><span>Cover Image href</span><div id="cover-img-2"></div></td>
+							</tr>
+						</tbody>
+						<td class="single"><span>Team 1 Players</span><div id="team1-players-2"> </div></td>
+						<td class="single"><span>Team 2 Players</span><div id="team2-players-2"> </div></td>
+					</table>
+					<div class="btn-group" role="group">
+						<button class="btn btn-secondary" type="button" id="edit-2">
+							Edit
+						</button> 
+						<button class="btn btn-secondary checked" type="button" id="declare-2">
+							Declare Toss
+						</button>
+					</div>
+					</div>
+				</div>
+				<div class="card" id="card-3">
+					<div class="card-body">
+					  <h3 class="card-title" id="match-name-3">Match name</h3>
+					  <table>
+						  <tbody>
+							  <tr>
+								  <td><span>Match ID </span> <div id="match-id-3">1</div></td>
+								  <td><span>Team 1 </span> <div id="team1-3"> Kolkata Knight Riders</div></td>
+								  <td><span>Team 1 abbr </span> <div id="team1-abbr-3"> </div></td>
+								  <td><span>Team 2 </span><div id="team2-3"> </div></td>
+								  <td><span>Team 2 abbr</span><div id="team2-abbr-3"> </div></td>
+								  <td><span>Date</span><div id="date-3"> </div></td>
+								  <td><span>Time</span><div id="time-3"> </div></td>
+								  <td><span>Entry Req.</span><div id="entryReq-3"> </div></td>
+								  <td><span>Toss Result</span><div id="toss-3"></div></td>
+								  <td><span>Match Winner</span><div id="winner-3"></div></td>
+								  <td><span>Cover Image href</span><div id="cover-img-3"></div></td>
+							  </tr>
+						  </tbody>
+						  <td class="single"><span>Team 1 Players</span><div id="team1-players-3"> </div></td>
+						  <td class="single"><span>Team 2 Players</span><div id="team2-players-3"> </div></td>
+					  </table>
+					  <div class="btn-group" role="group">
+						<button class="btn btn-secondary" type="button" id="edit-3">
+							Edit
+						</button> 
+						<button class="btn btn-secondary checked" type="button" id="declare-3">
+							Declare Toss
+						</button>
+					</div>
+					</div>
+				</div>
+				<div class="card" id="card-4">
+					  <div class="card-body">
+						<h3 class="card-title" id="match-name-4">Match name</h3>
+						<table>
+						  <tbody>
+							  <tr>
+								  <td><span>Match ID </span> <div id="match-id-4">2</div></td>
+								  <td><span>Team 1 </span> <div id="team1-4"> Someone</div></td>
+								  <td><span>Team 1 abbr </span> <div id="team1-abbr-4"> </div></td>
+								  <td><span>Team 2 </span><div id="team2-4"> </div></td>
+								  <td><span>Team 2 abbr</span><div id="team2-abbr-4"> </div></td>
+								  <td><span>Date</span><div id="date-4"> </div></td>
+								  <td><span>Time</span><div id="time-4"> </div></td>
+								  <td><span>Entry Req.</span><div id="entryReq-4"> </div></td>
+								  <td><span>Toss Result</span><div id="toss-4"></div></td>
+								  <td><span>Match Winner</span><div id="winner-4"></div></td>
+								  <td><span>Cover Image href</span><div id="cover-img-4"></div></td>
+							  </tr>
+						  </tbody>
+						  <td class="single"><span>Team 1 Players</span><div id="team1-players-4"> </div></td>
+						<td class="single"><span>Team 2 Players</span><div id="team2-players-4"> </div></td>
+					  </table>
+					  <div class="btn-group" role="group">
+						<button class="btn btn-secondary" type="button" id="edit-4">
+							Edit
+						</button> 
+						<button class="btn btn-secondary checked" type="button" id="declare-4">
+							Declare Toss
+						</button>
+					</div>
+					  </div>
+				</div>
+				<div class="card" id="card-5">
+					<div class="card-body">
+					  <h3 class="card-title" id="match-name-5">Match name</h3>
+					  <table>
+						  <tbody>
+							  <tr>
+								  <td><span>Match ID </span> <div id="match-id-5">1</div></td>
+								  <td><span>Team 1 </span> <div id="team1-5"> Kolkata Knight Riders</div></td>
+								  <td><span>Team 1 abbr </span> <div id="team1-abbr-5"> </div></td>
+								  <td><span>Team 2 </span><div id="team2-5"> </div></td>
+								  <td><span>Team 2 abbr</span><div id="team2-abbr-5"> </div></td>
+								  <td><span>Date</span><div id="date-5"> </div></td>
+								  <td><span>Time</span><div id="time-5"> </div></td>
+								  <td><span>Entry Req.</span><div id="entryReq-5"> </div></td>
+								  <td><span>Toss Result</span><div id="toss-5"></div></td>
+								  <td><span>Match Winner</span><div id="winner-5"></div></td>
+								  <td><span>Cover Image href</span><div id="cover-img-5"></div></td>
+							  </tr>
+							  <td class="single"><span>Team 1 Players</span><div id="team1-players-5"> </div></td>
+							  <td class="single"><span>Team 2 Players</span><div id="team2-players-5"> </div></td>
+						  </tbody>
+					  </table>
+					  <div class="btn-group" role="group">
+						<button class="btn btn-secondary" type="button" id="edit-5">
+							Edit
+						</button> 
+						<button class="btn btn-secondary checked" type="button" id="declare-5">
+							Declare Toss
+						</button>
+					</div>
+					</div>
+				</div>
+				<div class="card" id="card-6">
+					  <div class="card-body">
+						<h3 class="card-title" id="match-name-5">Match name</h3>
+						<table>
+						  <tbody>
+							  <tr>
+								  <td><span>Match ID </span> <div id="match-id-6">2</div></td>
+								  <td><span>Team 1 </span> <div id="team1-6"> Someone</div></td>
+								  <td><span>Team 1 abbr </span> <div id="team1-abbr-6"> </div></td>
+								  <td><span>Team 2 </span><div id="team2-6"> </div></td>
+								  <td><span>Team 2 abbr</span><div id="team2-abbr-6"> </div></td>
+								  <td><span>Date</span><div id="date-6"> </div></td>
+								  <td><span>Time</span><div id="time-6"> </div></td>
+								  <td><span>Entry Req.</span><div id="entryReq-6"> </div></td>
+								  <td><span>Toss Result</span><div id="toss-6"></div></td>
+								  <td><span>Match Winner</span><div id="winner-6"></div></td>
+								  <td><span>Cover Image href</span><div id="cover-img-6"></div></td>
+							  </tr>
+						  </tbody>
+						  <td class="single"><span>Team 1 Players</span><div id="team1-players-6"> </div></td>
+						  <td class="single"><span>Team 2 Players</span><div id="team2-players-6"> </div></td>
+					  </table>
+					  <div class="btn-group" role="group">
+						<button class="btn btn-secondary" type="button" id="edit-6">
+							Edit
+						</button> 
+						<button class="btn btn-secondary checked" type="button" id="declare-6">
+							Declare Toss
+						</button>
+					</div>
+					  </div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Modal -->
+	<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="modal-match-name" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="modal-match-name">Edit Match</h5> 
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+						  <span class="input-group-text">Match ID</span>
+						</div>
+						<input id="modal-match-id" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+						  <span class="input-group-text">Team 1</span>
+						</div>
+						<input id="modal-team1" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+						  <span class="input-group-text">Team 1 abbr </span>
+						</div>
+						<input id="modal-team1-abbr" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+						  <span class="input-group-text">Team 2</span>
+						</div>
+						<input id="modal-team2" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+						  <span class="input-group-text">Team 2 abbr </span>
+						</div>
+						<input id="modal-team2-abbr" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+						  <span class="input-group-text">Date</span>
+						</div>
+						<input id="modal-date" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+						  <span class="input-group-text">Time</span>
+						</div>
+						<input id="modal-time" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+						  <span class="input-group-text">Entry Requirement</span>
+						</div>
+						<input id="modal-entryReq" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+						  <span class="input-group-text">Cover Image URL</span>
+						</div>
+						<input id="modal-cover-img" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+						  <span class="input-group-text">Secret Key</span>
+						</div>
+						<input id="modal-secret-key" type="text" class="form-control" placeholder="32 digit admin key" aria-label="Username" aria-describedby="basic-addon1">
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-primary">Save changes</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="declareModal" tabindex="-1" role="dialog" aria-labelledby="modal-match-name" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="declare-modal-match-name">Edit Match</h5> 
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+						  <button class="btn btn-outline-secondary" type="button">Button</button>
+						  <button class="btn btn-outline-secondary" type="button">Button</button>
+						</div>
+						<input type="text" class="form-control" placeholder="Team chosen" readonly aria-label="" aria-describedby="basic-addon1">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+						  <span class="input-group-text">Secret Key</span>
+						</div>
+						<input id="modal-secret-key" type="text" class="form-control" placeholder="Secret key" aria-label="Username" aria-describedby="basic-addon1">
+					</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-primary">Save changes</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/scripts.js"></script>
+  </body>
+</html>

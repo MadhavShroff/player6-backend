@@ -1,17 +1,15 @@
 /*
-    feature set
-    on page load:
-        get player selection, turn to pick
-            if player selection is completed, ie 6-6 players chosen, show completed overlay
-            else get turn, using turn, show or hide overlay
+   TODO: 
+   1. Add loading overlay before anything shows up
+   2. Add logic for 
 
 */
 
 var thisGameID = null;
-var selection = null;
 var uname = null;
 var uid = null;
 var firstOrSecond = null;
+var currentSelection = null;
 $(document).ready(() => {
     showLoadingOverlay();
     console.log("Player Selection: ready() callback");
@@ -19,11 +17,9 @@ $(document).ready(() => {
         var metadata = await member.getMetaData()
         thisGameID = metadata.gameState.gameID;     // get gameID
         uid = metadata.userInfo.memID;
-        firstOrSecond = metadata.gameState.joined;
-        selection = await getPlayerSelection()      // get player selection so far, print to console
-        console.log(selection);
-        console.log(uid);
-        setCardsInDrawers(selection);
+        firstOrSecond = metadata.gameState.joined === "First" ? 1 : 2;
+        currentSelection = await getPlayerSelection()      // get player selection so far, print to console
+        setCardsInDrawers(currentSelection);
         if(metadata.gameState.joined === "First") {
             setName(metadata.gameState.user2.name);
         } else if(metadata.gameState.joined === "Second") {
@@ -32,16 +28,22 @@ $(document).ready(() => {
             setName("Opponent");
             console.log("Error: Opponent name not defined!");
         }
-        if(myTurn(metadata.gameState.tossWinner, selection)) {
+        if(myTurn(metadata.gameState.tossWinner, currentSelection)) {
+            console.log("My turn")
             showDrawers();
         } else {
+            console.log("Opponent's turn")
             showOpponentSelectingPlayerOverlay();
         }
+        if(isPlayerSelectionCompleted(currentSelection)) {
+            showPlayerSelectionCompletedOverlay();
+            console.log("Player selection completed**")
+        }
         for (let j = 1; j <=11; j++) {
-            registerClickEvent($(`#card-left-${j}`), metadata);
-            registerClickEvent($(`#card-right-${j}`), metadata);
-            registerClickEvent($(`#faq-card-left-${j}`), metadata);
-            registerClickEvent($(`#faq-card-right-${j}`), metadata);
+            registerClickEvent($(`#card-left-${j}`));
+            registerClickEvent($(`#card-right-${j}`));
+            registerClickEvent($(`#faq-card-left-${j}`));
+            registerClickEvent($(`#faq-card-right-${j}`));
             $(`#card-left-${j}`).text(matchCards[metadata.gameState.matchID].players.team1[j-1]);
             $(`#card-right-${j}`).text(matchCards[metadata.gameState.matchID].players.team2[j-1]);
             $(`#faq-card-left-${j}`).text(matchCards[metadata.gameState.matchID].players.team1[j-1]);
@@ -49,17 +51,37 @@ $(document).ready(() => {
         }
         socket.emit('arrived at player selection', thisGameID);
         socket.on('player update', data => {
-            console.log("Opponent made selection"); console.log(data);
+            console.log(data);
+            currentSelection = data.playerSelection;
             if(!(data.userID === uid)) { // if not this user
                 removeCard(data.playerSelected);
                 addCard("opp-team", data.playerSelected);
                 showDrawers();
             } else {
-                showOpponentSelectingPlayerOverlay();
-            } // if this user, made a selection, do nothing
+                showOpponentSelectingPlayerOverlay(); // if this user, made a selection, do nothing
+            } 
+            if(isPlayerSelectionCompleted(data.playerSelection)) {
+                showPlayerSelectionCompletedOverlay();
+                console.log("Player selection completed***")
+            }
         })
     })
 })
+
+function isPlayerSelectionCompleted(selection) {
+    var count = 0;
+    $.each(selection.user1, (idx, name) => {
+        if(name !== "- Turn Missed -") count = count + 1;
+    });
+    $.each(selection.user2, (idx, name) => {
+        if(name !== "- Turn Missed -") count = count + 1;
+    });
+    if(count >= 12) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 function myTurn(isWinner, sel) { 
     var sum = sel.user1.length + sel.user2.length;   
@@ -95,7 +117,6 @@ async function getPlayerSelection() {
             "mode": "cors"
         }).then(response => {
             return response.json().then(data => {
-                console.log(data);
                 if(data.isData) {
                     return data.playerSelection;
                 } else {
@@ -108,48 +129,62 @@ async function getPlayerSelection() {
         });
 }
 
-function registerClickEvent(card, metad) {
-    card.click((event) => onPlayerSelect(event, card.text(), metad));
+function registerClickEvent(card) {
+    card.click((event) => onPlayerSelect(event, card.text()));
 }
 
-async function onPlayerSelect(event, playerSelected, metad) {
-    event.preventDefault();
-    removeCard(playerSelected);
-    addCard("myteam", playerSelected);
+async function onPlayerSelect(event, playerSelected) {
+    if(event !== null) event.preventDefault();
+    if(isValidPlayerSelection(playerSelected, currentSelection)) {
+        removeCard(playerSelected);
+        addCard("my-team", playerSelected);
+        currentSelection = await makeSelection(playerSelected);
+    }
+}
+
+function isValidPlayerSelection(playerSelected, selection) {
+    console.log("isValid received: ");
     console.log(playerSelected);
-    selection = await makeSelection(playerSelected);
+    console.log(currentSelection);
+    if(firstOrSecond == 1) {
+        console.log(selection.user1);
+    } else {
+        console.log(selection.user2);
+    }
+    console.log(firstOrSecond);
+    return true;
 }
 
 function setCardsInDrawers(sel) {
     $("#opp-team")[0].innerHTML = "";
-    $("#myteam")[0].innerHTML = "";
+    $("#my-team")[0].innerHTML = "";
     if(firstOrSecond === "First") {
         if("user1" in sel)
-            sel.user1.forEach(name => {
+            $.each(sel.user1, (idx, name) => {
                 removeCard(name);
-                addCard("myteam", name)
+                addCard("my-team", name)
             })
         if("user2" in sel)
-            sel.user2.forEach(name => {
+        $.each(sel.user2, (idx, name) => {
                 removeCard(name);
                 addCard("opp-team", name)
             })
     } else {
         if("user1" in sel)
-            sel.user1.forEach(name => {
+        $.each(sel.user1, (idx, name) => {
                 removeCard(name);
                 addCard("opp-team", name)
             })
         if("user2" in sel)
-            sel.user2.forEach(name => {
+        $.each(sel.user2, (idx, name) => {
                 removeCard(name);
-                addCard("myteam", name)
+                addCard("my-team", name)
             })
     }
 }
 
 function makeSelection(playerSelected) { // returns the updated player selection, after inserting new selection in db
-    // fetch("https://player6backendweb.com/v1/game/makeSelection", {
+    // return fetch("https://player6backendweb.com/v1/game/makeSelection", {
         return fetch("http://localhost:3000/v1/game/makeSelection", {
             "headers": {
                 "accept": "*/*",
@@ -165,13 +200,14 @@ function makeSelection(playerSelected) { // returns the updated player selection
             "method": "POST",
             "mode": "cors"
         }).then(response => {
-            socket.emit('player selected', {gameID: thisGameID, userID: uid, playerSelected: playerSelected});
             return response.json().then(data => {
+                currentSelection = data.playerSelection;
+                socket.emit('player selected', {gameID: thisGameID, userID: uid, playerSelected: playerSelected, playerSelection: currentSelection}); 
+                console.log(currentSelection);
                 if(data.playerSelection.user1.length >= 6 && data.playerSelection.user2.length >= 6) {
                     showPlayerSelectionCompletedOverlay();
                     console.log("Player selection completed")
                 }
-                setCardsInDrawers(data.playerSelection);
                 console.log(data);
                 showOpponentSelectingPlayerOverlay();
                 return data.playerSelected;
@@ -184,163 +220,58 @@ function makeSelection(playerSelected) { // returns the updated player selection
         });
 }
 
-
-// function getPlayerSelection(gameID) {
-//     fetch("https://player6backendweb.com/v1/game/getPlayerSelection", {
-//     // fetch("http://localhost:3000/v1/game/getPlayerSelection", {
-//         "headers": {
-//             "accept": "*/*",
-//             "cache-control": "no-cache",
-//             "content-type": "application/json",
-//             "pragma": "no-cache",
-//             "sec-fetch-dest": "empty",
-//             "sec-fetch-mode": "cors",
-//             "sec-fetch-site": "cross-site"
-//         },
-//         "referrerPolicy": "no-referrer-when-downgrade",
-//         "body": JSON.stringify({"gameID": gameID}),
-//         "method": "POST",
-//         "mode": "cors"
-//     }).then(response => {
-//         response.json().then(data => {
-//             console.log(data);
-//             if(data.isData) {
-//                 return 
-//             }
-//         });
-//     }).catch( err => {
-//         console.log('Fetch Error :-S', err);
-//     });
-// }
-
-
-// var gameID;
-// $(document).ready(() => {
-//     hideCompletedOverlay();
-//     MemberStack.onReady.then(async function(member) {
-//         const metad = await member.getMetaData();
-//         gameID = metad.gameState.gameID;
-//         var name;
-//         if(metad.gameState.joined === "First") {
-//             name = metad.gameState.user2.name;
-//         } else if(metad.gameState.joined === "Second") {
-//             name = metad.gameState.user1.name;
-//         } else {
-//             name = "Opponent"
-//             console.log("Error: Opponent name not defined!");
-//         }
-//         $("body > div.div-block-52 > div.c-wrapper.w-container > div.div-block-48 > div.text-block-14").text(`${name}'s Team`);
-//         $("body > div.div-block-52 > div.c-wrapper.w-container > div.div-block-48 > div.text-block-15").text(`${name}'s team will appear in this box`);
-//         //TODO:Insert player info from match-data into frontend
-        // for (let j = 1; j <=11; j++) {
-        //     registerClickEvent($(`#card-left-${j}`), metad);
-        //     registerClickEvent($(`#card-right-${j}`), metad);
-        //     registerClickEvent($(`#faq-card-left-${j}`), metad);
-        //     registerClickEvent($(`#faq-card-right-${j}`), metad);
-        // }
-//         refreshPlayerSelection(gameID);
-//         if(metad.gameState.tossWinner === "Me") {
-//             hideOverlay();
-//         } else {
-//             showOverlay();
-//         }
-//         socket.emit('arrived at player selection', metad.gameState.gameID);
-//         socket.on('player update', data => {
-//             console.log("Opponent made selection");
-//             console.log(data);
-//             if(!(data.userID === metad.userInfo.memID)) { // if not this user
-//                 removeCard(data.playerSelected);
-//                 addCard("opp-team", data.playerSelected);
-//                 hideOverlay();
-//             } else; // if this user, made a selection, do nothing
-//         })
-//     });
-// });
-
-
-// function refreshPlayerSelection(gameID) {
-//     fetch("https://player6backendweb.com/v1/game/getPlayerSelection", {
-//     // fetch("http://localhost:3000/v1/game/getPlayerSelection", {
-//         "headers": {
-//             "accept": "*/*",
-//             "cache-control": "no-cache",
-//             "content-type": "application/json",
-//             "pragma": "no-cache",
-//             "sec-fetch-dest": "empty",
-//             "sec-fetch-mode": "cors",
-//             "sec-fetch-site": "cross-site"
-//         },
-//         "referrerPolicy": "no-referrer-when-downgrade",
-//         "body": JSON.stringify({"gameID": gameID}),
-//         "method": "POST",
-//         "mode": "cors"
-//     }).then(response => {
-//         response.json().then(data => {
-//             console.log(data);
-//             if(data.isData) {
-//                 console.log(data);
-//                 $("#opp-team")[0].innerHTML = "";
-//                 $("#myteam")[0].innerHTML = "";
-//                 if(metad.gameState.joined === "First") {
-//                     if("user1" in data.playerSelection) {
-//                         data.playerSelection.user1.forEach(name => {
-//                             removeCard(name);
-//                             addCard("myteam", name)
-//                         })
-//                     }
-//                     if("user2" in data.playerSelection) {
-//                         data.playerSelection.user2.forEach(name => {
-//                             removeCard(name);
-//                             addCard("opp-team", name)
-//                         })
-//                     }
-//                 } else {
-//                     if("user1" in data.playerSelection) {
-//                         data.playerSelection.user1.forEach(name => {
-//                             removeCard(name);
-//                             addCard("opp-team", name)
-//                         })
-//                     }
-//                     if("user2" in data.playerSelection) {
-//                         data.playerSelection.user2.forEach(name => {
-//                             removeCard(name);
-//                             addCard("myteam", name)
-//                         })
-//                     }
-//                 }
-//                 if(data.playerSelection.user1.length >= 6 && data.playerSelection.user2.length >= 6) {
-//                     hideOverlay();
-//                     showCompletedOverlay();
-//                     console.log("Player selection completed")
-//                 }
-//             }
-//         });
-//     }).catch( err => {
-//         console.log('Fetch Error :-S', err);
-//     });
-// }
-
 const removeCard = (name) => {
-    $.each($('div').filter(function(){ return $(this).text() === name;}), (index, value) => {value.remove()});
+    for (let j = 1; j <=11; j++) {
+        if($(`#card-left-${j}`).text() === name) {
+            console.log("Removing " + name);
+            $(`#card-left-${j}`).remove();
+            $(`#faq-card-left-${j}`).remove();
+            break;
+        }
+        if($(`#card-right-${j}`).text() === name) {
+            console.log("Removing " + name);
+            $(`#card-right-${j}`).remove();
+            $(`#faq-card-right-${j}`).remove();
+            break;
+        }
+    }
 }
 
 const addCard = (side, which) => {
-    $div = $("<div>", {"class":"c-card__one"});
+    if(which === "- Turn Missed -") $div = $("<div>", {"class":"c-card__one", "style": "background: darkred;"});
+    else $div = $("<div>", {"class":"c-card__one"});
     $div.text(which);
     $(`#${side}`).append($div);
+    console.log("added " + which + " - " + side);
 }
 
 
 const hideAllOverlays = () => {
-    $("body > div.div-block-53").css("display", "none"); // Player Selection Completed Overlay
-    $("body > div.div-block-timer").css("display", "none"); // Opponent choosing...
-    $("body > div.text-wrapper-2.loading").css("display", "none"); // Loading... Hold on
+    clearInterval(timer);
+    hidePlayerSelectionCompletedOverlay(); // Player Selection Completed Overlay
+    hideOpponentSelectingPlayerOverlay(); // Opponent choosing...
+    hideLoadingOverlay(); // Loading... Hold 
+    hideModal(); // Are You sure?
+}
+
+const hideDrawersInSmallResolution = () => {
+    $("body > div.div-block-52 > div.faq-wrap > div.faq-container").css("z-index", "-1");
+}
+
+const showDrawersInSmallResolution = () => {
+    $("body > div.div-block-52 > div.faq-wrap > div.faq-container").css("z-index", "auto");
+}
+
+const hideModal = () => {
+    $("#modal-parent").css("display", "none");
 }
 
 const showPlayerSelectionCompletedOverlay = () => {
     hideAllOverlays();
+    hideDrawersInSmallResolution();
+    stopCountdown();
+    setTimeout( () => $("body > div.div-block-53").css("display", "block"), 200);
     clearInterval(timer);
-    $("body > div.div-block-53").css("display", "block");
 }
 
 const hidePlayerSelectionCompletedOverlay = () => {
@@ -350,26 +281,28 @@ const hidePlayerSelectionCompletedOverlay = () => {
 var timer = null;
 const showOpponentSelectingPlayerOverlay = () => {
     hideAllOverlays();
-    $("#js-clock-seconds").text("")
-    var i = 60;
+    stopCountdown();
+    $("#js-clock-seconds").text(60);
+    var i = 59;
     timer = setInterval(() => {
         $("#js-clock-seconds").text(i);
         i = i-1;
         if(i == 0) {
-            hideOpponentSelectingPlayerOverlay();
             clearInterval(timer);
+            hideOpponentSelectingPlayerOverlay();
         };
     }, 1000)
-    $("body > div.div-block-timer").css("display", "block");
+    $("#screen-freeze").css("display", "block");
 }
 
 const hideOpponentSelectingPlayerOverlay = () => {
-    $("body > div.div-block-timer").css("display", "none");
+    $("#screen-freeze").css("display", "none");
     clearInterval(timer);
 }
 
 const showLoadingOverlay = () => {
     hideAllOverlays();
+    stopCountdown();
     $("body > div.text-wrapper-2.loading").css("display", "block");
 }
 
@@ -377,10 +310,38 @@ const hideLoadingOverlay = () => {
     $("body > div.text-wrapper-2.loading").css("display", "none");
 }
 
+var mainCountdown;
+function startCountdown() { // starts a countdown for the main screen timer, and on its time out, selects a null player for this player (NaP)
+    var countdownSeconds = 59;
+    mainCountdown = setInterval(async () => {
+        if(countdownSeconds >= 10 && countdownSeconds < 60) {
+            $("body > div.div-block-52 > div.c-wrapper.w-container > div.div-block-47 > div.text-block-18").text(`00:${countdownSeconds}`);
+        } else if (countdownSeconds < 10 && countdownSeconds > 0 ){
+            $("body > div.div-block-52 > div.c-wrapper.w-container > div.div-block-47 > div.text-block-18").text(`00:0${countdownSeconds}`);
+        }
+        if (countdownSeconds === 0) {
+            stopCountdown();
+            addCard("my-team", "- Turn Missed -");
+            console.log("- Turn Missed -");
+            currentSelection = await makeSelection("- Turn Missed -");
+        }
+        countdownSeconds = countdownSeconds - 1;
+    }, 1000);
+}
+
+function stopCountdown() {
+    $("body > div.div-block-52 > div.c-wrapper.w-container > div.div-block-47 > div.text-block-18").text(`00:00`);
+    clearInterval(mainCountdown);
+}
+
 const showDrawers = () => {
+    showDrawersInSmallResolution();
     hideAllOverlays();
+    stopCountdown();
+    startCountdown();
     $("body > div.div-block-52").css("display", "block");
 }
 const hideDrawers = () => {
+    stopCountdown();
     $("body > div.div-block-52").css("display", "none");
 }
