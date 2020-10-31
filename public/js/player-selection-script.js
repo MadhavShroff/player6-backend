@@ -13,6 +13,12 @@ var currentSelection = null;
 $(document).ready(() => {
     showLoadingOverlay();
     console.log("Player Selection: ready() callback");
+    for(let j = 1; j <=11; j++) {
+        $(`#card-left-${j}`).text(matchCards[metadata.gameState.matchID].players.team1[j-1]);
+        $(`#card-right-${j}`).text(matchCards[metadata.gameState.matchID].players.team2[j-1]);
+        $(`#faq-card-left-${j}`).text(matchCards[metadata.gameState.matchID].players.team1[j-1]);
+        $(`#faq-card-right-${j}`).text(matchCards[metadata.gameState.matchID].players.team2[j-1]);   
+    }
     MemberStack.onReady.then(async function(member) {
         var metadata = await member.getMetaData()
         thisGameID = metadata.gameState.gameID;     // get gameID
@@ -44,10 +50,7 @@ $(document).ready(() => {
             registerClickEvent($(`#card-right-${j}`));
             registerClickEvent($(`#faq-card-left-${j}`));
             registerClickEvent($(`#faq-card-right-${j}`));
-            $(`#card-left-${j}`).text(matchCards[metadata.gameState.matchID].players.team1[j-1]);
-            $(`#card-right-${j}`).text(matchCards[metadata.gameState.matchID].players.team2[j-1]);
-            $(`#faq-card-left-${j}`).text(matchCards[metadata.gameState.matchID].players.team1[j-1]);
-            $(`#faq-card-right-${j}`).text(matchCards[metadata.gameState.matchID].players.team2[j-1]);
+            
         }
         socket.emit('arrived at player selection', thisGameID);
         socket.on('player update', data => {
@@ -184,8 +187,8 @@ function setCardsInDrawers(sel) {
 }
 
 function makeSelection(playerSelected) { // returns the updated player selection, after inserting new selection in db
-    // return fetch("https://player6backendweb.com/v1/game/makeSelection", {
-        return fetch("http://localhost:3000/v1/game/makeSelection", {
+    return fetch("https://player6backendweb.com/v1/game/makeSelection", {
+        // return fetch("http://localhost:3000/v1/game/makeSelection", {
             "headers": {
                 "accept": "*/*",
                 "cache-control": "no-cache",
