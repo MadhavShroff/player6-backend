@@ -20,8 +20,8 @@ var clickListener = (event, gameObj) => {
         metad.gameState = {...metad.gameState, matchID: gameObj};
         metad.userInfo = {email: member["email"], memID: member["id"], name: member["name"], phone: member["phone-number"]}
   	  	member.updateMetaData(metad).then(() => {
-            fetch("http://localhost:3000/v1/game/createOrJoinGame", {
-            // fetch("https://player6backendweb.com/v1/game/createOrJoinGame", {
+            // fetch("http://localhost:3000/v1/game/createOrJoinGame", {
+            fetch("https://player6backendweb.com/v1/game/createOrJoinGame", {
                 "headers": {
                     "accept": "*/*",
                     "cache-control": "no-cache",

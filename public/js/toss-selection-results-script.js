@@ -3,8 +3,8 @@ let metadata;
 
 async function checkForOpponent(id, tossSel, userNum, matchID) {
     if(id == null) return;
-    // fetch("https://player6backendweb.com/v1/game/getGame", {
-        fetch("http://localhost:3000/v1/game/getGame", {
+    fetch("https://player6backendweb.com/v1/game/getGame", {
+        // fetch("http://localhost:3000/v1/game/getGame", {
                 "headers": {
                     "accept": "*/*",
                     "cache-control": "no-cache",

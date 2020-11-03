@@ -24,8 +24,8 @@ $(document).ready(() => {
 })
 
 async function updateTossWinner(gameID, winner) {
-    // return fetch("https://player6backendweb.com/v1/game/updateTossWinner", {
-        fetch("http://localhost:3000/v1/game/updateTossWinner", {
+    return fetch("https://player6backendweb.com/v1/game/updateTossWinner", {
+        // fetch("http://localhost:3000/v1/game/updateTossWinner", {
             "headers": {
                 "accept": "*/*",
                 "cache-control": "no-cache",
