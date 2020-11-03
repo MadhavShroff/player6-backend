@@ -34,10 +34,7 @@ router.post('/createOrJoinGame', (req, response) => {
           console.log(
             `No game exists with following parameters, Player (${userInfo.name}, ${userInfo.email}) is first in the room, waiting...`
           );
-          console.log(game.gameInfo);
-          console.log(userInfo);
           db.collection('pendingGames').insertOne(game, (err, res) => {
-            console.log(res);
             response.send({
               status: 'Waiting',
               description: 'Player is first in the room, waiting for second player to initiate game',
@@ -46,7 +43,15 @@ router.post('/createOrJoinGame', (req, response) => {
           });
         } else if (res[0].user1.memID != userInfo.memID) {
           db.collection('pendingGames').deleteOne({ _id: res[0]._id });
-          const newGame = { ...res[0], user2: { ...userInfo }, pendingGameID: String(res[0]._id) };
+          const newGame = {
+             ...res[0], 
+             user2: { ...userInfo }, 
+            pendingGameID: String(res[0]._id),
+            playerSelectionStartTime: -1,
+            playerSelectionCompleted: false,
+            turns: [],
+            "playerSelection" : { user1: [], user2: [] },
+          };
           db.collection('matchedGames').insertOne(newGame, (err, result) => {
             response.send({
               status: 'Paired',
@@ -80,7 +85,6 @@ router.post('/getGame', (req, res) => {
       res.send({ isData: false, queryResult: 'null' });
     } else {
       if (err) res.status(500).send();
-      console.log(result);
       if (Array.isArray(result)) {
         console.log('INCONSISTENCY ERROR Many games with same pending ID');
         res.send({ isData: false, status: 'Failure', err: 'Inconsistency Error' });
@@ -121,6 +125,14 @@ router.post('/getGame', (req, res) => {
     }
   });
 });
+
+router.post('/updateTossWinner', (req, res) => {
+  const db = globalClient.db('games');
+  db.collection('matchedGames')
+  .updateOne({ pendingGameID: req.body.gameID}, {
+    $set: {tossWinner: req.body.winner}
+  });
+})
 
 router.post('/makeSelection', (req, res) => {
   const db = globalClient.db('games');

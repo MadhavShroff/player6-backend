@@ -2,24 +2,53 @@ $(document).ready(() => {
     MemberStack.onReady.then(async function(member) {
         var metadata = await member.getMetaData();
         var selection = await getPlayerSelection(metadata.gameState.gameID);
-        console.log(selection);
-        $.each(["one", "two", "three", "four", "five", "six"], (i) => {
-            $(`#player-left-${i}`).text("")
-        })
-        $("#player-left-one").text(selection.user1[0]);
-        $("#player-left-two").text(selection.user1[1]);
-        $("#player-left-three").text(selection.user1[2]);
-        $("#player-left-four").text(selection.user1[3]);
-        $("#player-left-five").text(selection.user1[4]);
-        $("#player-left-six").text(selection.user1[5]);
-        $("#player-right-one").text(selection.user2[0]);
-        $("#player-right-two").text(selection.user2[1]);
-        $("#player-right-three").text(selection.user2[2]);
-        $("#player-right-four").text(selection.user2[3]);
-        $("#player-right-five").text(selection.user2[4]);
-        $("#player-right-six").text(selection.user2[5]);
+        for(var i=1; i<=6; i++) {
+            $(`#player-left-${i}`).text("Waiting...");
+            $(`#player-right-${i}`).text("Waiting...");
+        }
+        if(metadata.gameState.joined === "First") {
+            setName(metadata.gameState.user2.name);
+            let a = 1;
+            $.each(selection.user1, (idx, name) => {
+                if(name !== "- Turn Missed -") {
+                    $(`#player-left-${a}`).text(name);
+                    a = a+1;
+                }
+            });
+            
+            a = 1;
+            $.each(selection.user2, (idx, name) => {
+                if(name !== "- Turn Missed -") {
+                    $(`#player-right-${a}`).text(name);
+                    a = a+1;
+                }
+            });
+        } else if(metadata.gameState.joined === "Second") {
+            setName(metadata.gameState.user1.name);
+            let a = 1;
+            $.each(selection.user1, (idx, name) => {
+                if(name !== "- Turn Missed -") {
+                    $(`#player-right-${a}`).text(name);
+                    a = a+1;
+                }
+            });
+            a = 1;
+            $.each(selection.user2, (idx, name) => {
+                if(name !== "- Turn Missed -") {
+                    $(`#player-left-${a}`).text(name);
+                    a = a+1;
+                }
+            });
+        } else {
+            setName("Opponent");
+            console.log("Error: Opponent name not defined!");
+        }
     });
 })
+
+const setName = (name) => {
+    $("body > div.container-7.w-container > div.section-13._2 > h1").text(`${name}'s Team`);
+}
 
 async function getPlayerSelection(gameID) {
     return fetch("https://player6backendweb.com/v1/game/getPlayerSelection", {

@@ -3,7 +3,8 @@ let metadata;
 
 async function checkForOpponent(id, tossSel, userNum, matchID) {
     if(id == null) return;
-    fetch("https://player6backendweb.com/v1/game/getGame", {
+    // fetch("https://player6backendweb.com/v1/game/getGame", {
+        fetch("http://localhost:3000/v1/game/getGame", {
                 "headers": {
                     "accept": "*/*",
                     "cache-control": "no-cache",
@@ -48,7 +49,7 @@ $(document).ready(() => {
         setInterval(() => {
             reload_js("https://player6-backend-1b41jo.surge.sh/js/match-data.js");
             refreshData(metadata, true);
-        }, 5000);
+        }, 2000);
     });
 });
 
@@ -61,10 +62,8 @@ function reload_js(src) {
 function refreshData(metad, check) { 
     var id = null;
     $("body > div.section-9 > div > div.container-5.w-container").text("");
-    if(metad.gameState.pendingID == null) {
-        if(metad.gameState.gameID != null) {
-            id = metad.gameState.gameID
-        }
+    if("gameID" in metad.gameState) {
+        id = metad.gameState.gameID
     } else {
         id = metad.gameState.pendingID
     }
