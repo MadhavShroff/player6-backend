@@ -50,7 +50,7 @@ io.on('connection', (socket) => {
 		var isCompleted = await getPlayerSelectionCompleted(gameID);
 		var b =  await getLatestTurn(data.gameID);
 		console.log("getPlayerSelectionCompleted: " + isCompleted);
-		if(startTime === -1 || b != null) { 		// If player Selection has not started yet
+		if(startTime === -1 || b === null) { 		// If player Selection has not started yet
 			io.of('/').in(gameID).clients( async (error, clients) => {
 				if (error) console.log(error);
 				console.log(clients);
@@ -162,24 +162,8 @@ io.on('connection', (socket) => {
 		if(data.memID !== turn.user) console.log("ERROR - INCONSISTENCY - Player whos turn it isnt has made a selection");
 		var newSel = await addSelection(data.gameID, data.whichUser, data.playerSelected);
 		var compUser = await getComplimentUser(data.gameID, turn.user);
-		// Determine whose turn it is. 
-			// If player selection of this user is completed, send completed for player selection
-			// else If player selection of the compliment user is completed, create new turn for this user, at this time, and send it. 
-			// else (Neither players selection is done) add turn for compliment user, and send
-		var v = data.whichUser.split("");
-		var altUser = v[v.length - 1] === 1 ? "user2" : "user1";
-		if (getPlayerSelectionCompletedFor(data.whichUser, newSel)) {
-			var newTurn = await addTurn(data.gameID, compUser);
-			io.to(data.memID).emit("update", {"turn" : newTurn.user, countdownBase: newTurn, playerSelectionCompleted: true, playerSelection: newSel, onlyMe: false})
-			io.to(compUser).emit("update", {"turn" : newTurn.user, countdownBase: newTurn, playerSelectionCompleted: false, playerSelection: newSel, onlyMe: true})
-		} else if(getPlayerSelectionCompletedFor(altUser, newSel)) {
-			var newTurn = await addTurn(data.gameID, data.memID);
-			io.to(data.memID).emit("update", {"turn" : newTurn.user, countdownBase: newTurn, playerSelectionCompleted: false, playerSelection: newSel, onlyMe: true}) // Indicates that other player has completed player Selection
-			io.to(compUser).emit("update", {"turn" : newTurn.user, countdownBase: newTurn, playerSelectionCompleted: true, playerSelection: newSel, onlyMe: false}) // Indicates that other player has completed player Selection
-		} else { // Neither of the users have completed player selection
-			var newTurn = await addTurn(data.gameID, compUser);
-			io.to(data.gameID).emit("update", {"turn" : newTurn.user, countdownBase: newTurn, playerSelectionCompleted: false, playerSelection: newSel})
-		}
+		var newTurn = await addTurn(data.gameID, compUser);
+		io.to(data.gameID).emit("update", {"turn" : newTurn.user, countdownBase: newTurn, playerSelectionCompleted: false, playerSelection: newSel})
 	});
 
 	socket.on("waiting timeout exhausted", async (data) => {

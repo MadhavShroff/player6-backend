@@ -53,6 +53,7 @@ $(document).ready(() => {
             console.log(data);
             // Player Selection Completed
             if(isPlayerSelectionCompleted(data.playerSelection)) {
+                console.log("PlayerSelection Completed");
                 showPlayerSelectionCompletedOverlay();
                 clearTimeout(timeout);
                 return;
@@ -167,7 +168,7 @@ function isOpponentPlayerSelectionCompleted(sel) {
 		if(u1count >= 6) return true;
         else return false;
 	} else { // user2
-		sel.user1.forEach((name) => {
+		sel.user2.forEach((name) => {
 			if(name !== "- Turn Missed -") u2count = u2count + 1;
 			else missedCountUser2 = missedCountUser2 + 1;
 		});
