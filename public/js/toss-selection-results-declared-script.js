@@ -46,5 +46,5 @@ async function updateTossWinner(gameID, winner) {
         }).catch(err => {
             console.log('Fetch Error :-S', err);
             return null;
-        });
+    });
 }

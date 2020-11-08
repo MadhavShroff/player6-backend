@@ -15,17 +15,6 @@ const getPlayerSelectionStartedStatus = async (gameID) => {
     });
 }
 
-const setStartTime = async (gameID) => {
-    const db = globalClient.db('games');
-    db.collection('matchedGames').updateOne(
-        { pendingGameID: gameID },
-        { $set: {
-                playerSelectionStartTime : (new Date()).getTime()
-            }
-        }
-    );
-}
-
 const addTurn = async (gameID, userID, time) => { // adds a turn to the turns[], returns new baseTime
     console.log(`addTurn called - ${userID} ${time}`);
     const db = globalClient.db('games');
@@ -43,7 +32,10 @@ const getLatestTurn = async (gameID) => {
     console.log(`getLatestTurn called ${gameID}`);
     const db = globalClient.db('games');
     return db.collection('matchedGames').findOne({ pendingGameID: gameID }).then( result => {
-        if(result !== null) return result.turns[result.turns.length - 1];
+        if(result !== null)
+            if(result.turns.length > 0) 
+                return result.turns[result.turns.length - 1];
+            else return null;
         else return null;
     })
 }
@@ -136,19 +128,77 @@ const updatePlayerSelectionCompleted = async (gameID) => {
     });
 }
 
-const isPlayerSelectionCompleted = async (gameID) => {
-    console.log(`isPlayerSelectionCompleted called ${gameID}`);
+const getPlayerSelectionCompleted = async (gameID) => {
     const db = globalClient.db('games');
     return db.collection('matchedGames').findOne(
         { pendingGameID: gameID }
     ).then(res => {
+        console.log(`getPlayerSelectionCompleted called ${gameID}, returned ${res.playerSelectionCompleted}`);
         return res.playerSelectionCompleted;
+    });
+}
+
+const getGameStartTime = async (gameID) => {
+    console.log(`getGameStartTime called ${gameID}`);
+    const db = globalClient.db('games');
+    return db.collection('matchedGames').findOne(
+        { pendingGameID: gameID }
+    ).then(res => {
+        return res.playerSelectionStartTime;
+    });
+}
+
+const setGameStartTime = async (gameID) => {
+    console.log(`setGameStartTime called ${gameID}`);
+    const db = globalClient.db('games');
+    db.collection('matchedGames').updateOne(
+        { pendingGameID: gameID },
+        { $set: {
+                playerSelectionStartTime : (new Date()).getTime()
+            }
+        }
+    );
+}
+
+const getPlayerStartTime = async (data) => {
+    console.log(`getPlayerStartTime called ${data.gameID} ${data.memID}`);
+    const db = globalClient.db('games');
+    return db.collection('matchedGames').findOne(
+        { pendingGameID: data.gameID }
+    ).then(res => {
+        if(res.user1.memID === data.memID) {
+            return res.gameStarted.user1;
+        } else {
+            return res.gameStarted.user2;
+        }
+    });
+}
+
+const setPlayerStartTime = async (data) => {
+    console.log(`setPlayerStartTime called ${data.gameID} ${data.memID}`);
+    const db = globalClient.db('games');
+    var se = {};
+    return db.collection('matchedGames').findOne(
+        { pendingGameID: data.gameID }
+    ).then(res => {
+        var time = (new Date()).getTime()
+        if(res.user1.memID === data.memID) {
+            se["gameStarted.user1"] = time;
+        } else {
+            se["gameStarted.user2"] = time;
+        }
+        return db.collection('matchedGames').updateOne(
+            { pendingGameID: data.gameID },
+            { $set: se}
+        ).then(() => {
+            return time;
+        });
     });
 }
 
 module.exports = {
     getPlayerSelectionStartedStatus,
-    setStartTime,
+    setGameStartTime,
     addTurn,
     getTossWinner,
     getLatestTurn,
@@ -156,6 +206,10 @@ module.exports = {
     getComplimentUser,
     addSelectionMissed,
     updatePlayerSelectionCompleted,
-    isPlayerSelectionCompleted,
+    getPlayerSelectionCompleted,
+    getGameStartTime,
+    setGameStartTime,
+    setPlayerStartTime,
+    getPlayerStartTime,
     addSelection
 }

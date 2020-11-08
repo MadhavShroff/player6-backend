@@ -8,12 +8,27 @@ $(document).ready(() => {
     $.each([1, 2, 3, 4, 5, 6], (idx, cardNum) => {
         $(`#card-${cardNum}`).click((event) => clickListener(event, cardNum));
     })
+    $('.count').each(function () {
+        $(this).stop();
+    });
+    $("body > div.section-19 > div.wrap").hide(); // Hide loading overlay
 });
+
+const showLoading = () => { /// Show Loading overlay
+    $("body > div.section-19 > div.wrap").show();
+    var count = 1;
+    var countInterval = setInterval(() => {
+        $('.count').text(count);
+        if(count >= 100) {
+            clearInterval(countInterval);
+        }
+        count = count + 1;
+    }, 150);
+}
 
 var clickListener = (event, gameObj) => {
     event.preventDefault();
-    $("body > div.section-19").text("");
-    $("body > div.section-19").append($("<h1>").text("Loading... Please wait"));
+    showLoading();
     console.log("Clicked Button with match id: " + gameObj);
 	MemberStack.onReady.then(async function(member) {
 		const metad = await member.getMetaData();

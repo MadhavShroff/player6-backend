@@ -35,46 +35,49 @@ $(document).ready(() => {
             registerClickEvent($(`#faq-card-left-${j}`));
             registerClickEvent($(`#faq-card-right-${j}`));
         }
-
-        socket.emit('arrived at player selection', metadata.gameState.gameID);
+        socket.emit('arrived at player selection', { "gameID": gameID, "memID": memID, "whichUser" : `user${firstOrSecond}`,});
         socket.emit('join member room', metadata.userInfo.memID);
         socket.on("welcome to player selection", (data) => { 
             // triggers when any of the players arrive at /player-selection
-            if(data.startGame && !("playerSelectionStarted" in metadata.gameState)) {
+            if(data.startGame) {
                 console.log("Both players arrived at player selection");
                 hideWaitingOverlay();
             } else {
                 console.log("Waiting for opp to join");
-                showWaitingOverlay();
+                console.log(data.startTime);
+                showWaitingOverlay(data.startTime);
             }
         });
         socket.on("update", (data) => {
             console.log("Received udpate");
+            console.log(data);
             // Player Selection Completed
             if(isPlayerSelectionCompleted(data.playerSelection)) {
                 showPlayerSelectionCompletedOverlay();
                 clearTimeout(timeout);
                 return;
-            } else { // If PlayerSelection not completed
+            } else if(isOpponentPlayerSelectionCompleted(data.playerSelection)) { // If Opponent's player selection is completed
+                console.log("Only Me");
+                showDrawers(data.countdownBase.timestamp)
+                stopCountdown();
+                clearTimeout(timeout);
+            } else {
                 if(data.turn === metadata.userInfo.memID) { // if this user's turn
                     showDrawers(data.countdownBase.timestamp)
                 } else {
                     showOpponentSelectingPlayerOverlay(data.countdownBase.timestamp);
                 }
+                var ms = (60 - Math.ceil(new Date().getTime()/1000 - data.countdownBase.timestamp/1000))*1000; // seconds remaining 
+                if(ms > 0) {  // If timeout seconds is positive
+                    clearTimeout(timeout);
+                    var bias = metadata.gameState.joined === "First" ? 0 : 1000;
+                    timeout = setTimeout(() => { // TODO: remove timeout if user clicks on a card. 
+                        // (If "player selected" is invoked, "timer expired" must not)
+                        console.log("Emitted timer expired");
+                        socket.emit("timer expired", {"gameID": metadata.gameState.gameID, "userID": metadata.userInfo.memID, "expiredTurn": data.turn, "expiredTime": data.countdownBase.timestamp + 60000});
+                    }, ms + bias);
+                }
             }
-
-            // Turn
-            var ms = (60 - Math.ceil(new Date().getTime()/1000 - data.countdownBase.timestamp/1000))*1000; // seconds remaining 
-            if(ms > 0) {  // If timeout seconds is positive
-                clearTimeout(timeout);
-                var bias = metadata.gameState.joined === "First" ? 0 : 1000;
-                timeout = setTimeout(() => { // TODO: remove timeout if user clicks on a card. 
-                    // (If "player selected" is invoked, "timer expired" must not)
-                    console.log("Emitted timer expired");
-                    socket.emit("timer expired", {"gameID": metadata.gameState.gameID, "userID": metadata.userInfo.memID, "expiredTurn": data.turn, "expiredTime": data.countdownBase.timestamp + 60000});
-                }, ms + bias);
-            }
-            console.log(data);
             // Player Selection
             setCardsInDrawers(data.playerSelection);
         })
@@ -150,27 +153,53 @@ function isPlayerSelectionCompleted(selection) {
         if(u2count >= 6) return true;
         else return false;
     }
+}
 
+function isOpponentPlayerSelectionCompleted(sel) {
+    var u1count = 0; var u2count = 0;
+    var missedCountUser1 = 0; var missedCountUser2 = 0;
+    var user = `user${firstOrSecond == 1 ? 2 : 1}`;
+    if(user === "user1") {
+		sel.user1.forEach((name) => {
+			if(name !== "- Turn Missed -") u1count = u1count + 1;
+			else missedCountUser1 = missedCountUser1 + 1;
+		});
+		if(u1count >= 6) return true;
+        else return false;
+	} else { // user2
+		sel.user1.forEach((name) => {
+			if(name !== "- Turn Missed -") u2count = u2count + 1;
+			else missedCountUser2 = missedCountUser2 + 1;
+		});
+		if(u2count >= 6) return true;
+        else return false;
+	}
 }
 
 var waitingTimer = null;
+var waitingSeconds = 300;
 const showWaitingOverlay = (base) => {
-    console.log("Showing Waiting Overlay");
+    console.log("Showing Waiting Overlay"); 
     hideAllOverlays();
     stopCountdown();
-    console.log(base);
-    var i = 240
-    waitingTimer = setInterval(() => {
-        var m = Math.floor(i/60);
-        var s = i%60;
+    waitingSeconds = (300 - Math.ceil(new Date().getTime()/1000 - base/1000));
+    if(waitingSeconds > 0) waitingTimer = setInterval(() => {
+        var m = Math.floor(waitingSeconds/60);
+        var s = waitingSeconds%60;
         if (s<10) s = `0${s}`;
-        $("#js-clock-seconds-waiting").text(`0${m}:${s}`);
-        if(i == 0) {
+        $("#js-clock-seconds-waiting").text(`${m}:${s}`);
+        if(waitingSeconds == 0) {
             $("#js-clock-seconds-waiting").text(`00:00`);
             // TODO: some
-        };
-        i = i-1;
-    }, 1000)
+            socket.emit("waiting timeout exhausted", {gameID, memID});
+        }
+        waitingSeconds = waitingSeconds - 1;
+    }, 1000);
+    else {
+        console.log("Waiting time neagtive!");
+        console.log(base);
+    }
+
     $("#game-start-screen-freeze").css("display", "block");
 }
 
@@ -178,6 +207,10 @@ const hideWaitingOverlay = () => {
     $("#game-start-screen-freeze").css("display", "none");
     clearInterval(waitingTimer);
     $("#js-clock-seconds-waiting").text("4:00");
+}
+
+const fastForward = (num) => {
+    waitingSeconds = waitingSeconds + num;
 }
 
 function registerClickEvent(card) {
@@ -220,13 +253,11 @@ function setCardsInDrawers(sel) {
 const removeCard = (name) => {
     for (let j = 1; j <=11; j++) {
         if($(`#card-left-${j}`).text() === name) {
-            console.log("Removing " + name);
             $(`#card-left-${j}`).remove();
             $(`#faq-card-left-${j}`).remove();
             break;
         }
         if($(`#card-right-${j}`).text() === name) {
-            console.log("Removing " + name);
             $(`#card-right-${j}`).remove();
             $(`#faq-card-right-${j}`).remove();
             break;
@@ -239,7 +270,6 @@ const addCard = (side, which) => {
     else $div = $("<div>", {"class":"c-card__one"});
     $div.text(which);
     $(`#${side}`).append($div);
-    console.log("added " + which + " - " + side);
 }
 
 const hideAllOverlays = () => {
@@ -267,7 +297,6 @@ const showOpponentSelectingPlayerOverlay = (base) => {
     hideAllOverlays();
     stopCountdown();
     var i = 60 - Math.ceil(new Date().getTime()/1000 - base/1000);
-    console.log(base);
     timer = setInterval(() => {
         $("#js-clock-seconds").text(i);
         if(i == 0) {
@@ -312,7 +341,7 @@ function startCountdown(i) { // starts a countdown for the main screen timer, an
 }
 
 function stopCountdown() {
-
+    $("body > div.div-block-52 > div.c-wrapper.w-container > div.div-block-47 > div.text-block-18").text(`00:00`);
     clearInterval(mainCountdown);
 }
 
@@ -321,7 +350,6 @@ const showDrawers = (i) => {
     hideAllOverlays();
     stopCountdown();
     startCountdown(i);
-    $("body > div.div-block-52 > div.faq-wrap > div.faq-container").css("z-index", "auto");
     $("body > div.div-block-52").css("display", "block");
 }
 const hideDrawers = () => {

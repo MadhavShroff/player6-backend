@@ -50,6 +50,7 @@ router.post('/createOrJoinGame', (req, response) => {
             playerSelectionStartTime: -1,
             playerSelectionCompleted: false,
             turns: [],
+            gameStarted: {"user1": -1, "user2" : -1},
             "playerSelection" : { user1: [], user2: [] },
           };
           db.collection('matchedGames').insertOne(newGame, (err, result) => {
