@@ -5,19 +5,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js" integrity="sha512-v8ng/uGxkge3d1IJuEo6dJP8JViyvms0cly9pnbfRxT6/31c3dRWxIiwGnMSWwZjHKOuY3EVmijs7k1jz/9bLA==" crossorigin="anonymous"></script>
 	<script src="https://player6-backend-1b41jo.surge.sh/js/match-data.js" type="text/javascript"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js" integrity="sha512-v8ng/uGxkge3d1IJuEo6dJP8JViyvms0cly9pnbfRxT6/31c3dRWxIiwGnMSWwZjHKOuY3EVmijs7k1jz/9bLA==" crossorigin="anonymous"></script>
 	<script src="https://unpkg.com/micromodal/dist/micromodal.min.js" type="text/javascript"></script>
 	<script src="https://unpkg.com/tether@1.4.0/dist/js/tether.js" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 	<link href="css/style.css" rel="stylesheet">
 	<script>
-		// const socketEndpoint = 'wss://player6backendweb.com';
-		const socketEndpoint = 'ws://localhost:3000'
+		const socketEndpoint = 'wss://player6backendweb.com';
+		// const socketEndpoint = 'ws://localhost:3000'
 		const socket = io(socketEndpoint, {transports: ['websocket']});
 		console.log(socket);
-		$(document).ready( () => {
+		$(document).ready( async () => {
+			await fetchMatchData();
 			deselectAllOptions();
 			$("#opt-cards").click( () => {
 				deselectAllOptions();
@@ -71,7 +72,7 @@
 					$("#declareModal").modal("show");
 				})
 			});
-			socket.emit("get user accounts");
+			setTimeout(() => {socket.emit("get user accounts"); } , 1000);
 			socket.on("user accounts", (data) => {
 				$("#points-table > tbody").text("");
 				$.each(data, (idx, row) => { // each row
@@ -81,21 +82,22 @@
 					$tr.append($("<td>").text(row.email));
 					$tr.append($("<td>").text(row.points));	
 					$tr.append($("<td>").text(row.coins));
-					$tr.append($("<button>", {"type" : "button", "class" : "btn btn-primary m-1 pl-3 pr-3 p-1"}).text("Edit").click(() => {
-						$("#modal-points").val(row.points);
-						$("#modal-coins").val(row.coins);
-						$("#modal-points-submit").click(() => {
-							socket.emit("edit points", {
-								"secretKey" : $("#modal-secret-key-points").val(),
-								"points" : $("#modal-points").val(),
-								"memID": row._id,
-								"coins" :$("#modal-coins").val(),
-							});
-						});	
-						$("#editPointsModal").modal("show");
-					}));
+					$tr.append(getEditButton(row));
 					$("#points-table > tbody").append($tr);
 				});
+			});
+			socket.on("edit points result", (data) =>{
+				console.log("Got points results");
+				if(data.status === "wrong key") {
+					alert("Secret key entered is invalid");
+				} else if (data.status === "error") {
+					alert("Internal Server Error");
+				} else if(data.status === "no change made") {
+					alert(`No change in points`);
+				} else if(data.status === "success") {
+					alert(`Successfully modified points`);
+				}
+				socket.emit("get user accounts");
 			});
 		});
 
@@ -105,6 +107,25 @@
 			$.each($("#options").children(), (idx, child) => {
 				$(child).removeClass("btn-primary").addClass("btn-secondary");
 			});
+		}
+
+		const getEditButton = (row) => {
+			return $("<button>", {"type" : "button", "class" : "btn btn-primary m-2 pl-3 pr-3 p-1"}).text("Edit").click(() => {
+				$("#modal-points").val(row.points);
+				$("#modal-coins").val(row.coins);
+				$("#modal-points-submit").unbind();
+				$("#modal-points-submit").click(() => {
+					socket.emit("edit points", {
+						"secretKey" : $("#modal-secret-key-points").val(),
+					"points" : $("#modal-points").val(),
+						"memID": row._id,
+						"coins" :$("#modal-coins").val(),
+					});
+					console.log("emitted edit points");
+					$("#editPointsModal").modal("hide");
+				});	
+				$("#editPointsModal").modal("show");
+			})
 		}
 	</script>
 </head>
@@ -311,42 +332,42 @@
 					  </div>
 				</div>
 			</div>
-			<div id="card-column-points" class="p-3">
-				<div class="card p-3" id="card-1">
-					  <h3 class="card-title">Points and Coins</h3>
-					  <p>Click the edit button to modify the points for a user</p>
-					  <table id="points-table" class="table">
-						<thead>
-						  <tr>
-							<th scope="col">userID</th>
-							<th scope="col">Name</th>
-							<th scope="col">emailID</th>
-							<th scope="col">Points</th>
-							<th scope="col">Coins</th>
-							<th scope="col">Edit...</th>
-						  </tr>
-						</thead>
-						<tbody>
-						  <tr>
-							<th scope="row">1</th>
-							<td>Mark</td>
-							<td>Otto</td>
-							<td>@mdo</td>
-						  </tr>
-						  <tr>
-							<th scope="row">2</th>
-							<td>Jacob</td>
-							<td>Thornton</td>
-							<td>@fat</td>
-						  </tr>
-						  <tr>
-							<th scope="row">3</th>
-							<td>Larry</td>
-							<td>the Bird</td>
-							<td>@twitter</td>
-						  </tr>
-						</tbody>
-					  </table>
+			<div id="card-column-points" class="p-3 mx-auto" style="width: fit-content;">
+				<div class="card p-3">
+						<h3 class="card-title">Points and Coins</h3>
+						<p>Click the edit button to modify the points or coins for a user</p>
+						<table id="points-table" class="table table-responsive">
+						  <thead>
+							<tr>
+							  <th scope="col">userID</th>
+							  <th scope="col">Name</th>
+							  <th scope="col">emailID</th>
+							  <th scope="col">Points</th>
+							  <th scope="col">Coins</th>
+							  <th scope="col">Edit...</th>
+							</tr>
+						  </thead>
+						  <tbody>
+							<tr>
+							  <th scope="row">1</th>
+							  <td>Mark</td>
+							  <td>Otto</td>
+							  <td>@mdo</td>
+							</tr>
+							<tr>
+							  <th scope="row">2</th>
+							  <td>Jacob</td>
+							  <td>Thornton</td>
+							  <td>@fat</td>
+							</tr>
+							<tr>
+							  <th scope="row">3</th>
+							  <td>Larry</td>
+							  <td>the Bird</td>
+							  <td>@twitter</td>
+							</tr>
+						  </tbody>
+						</table>
 				  </div>
 			</div>
 		</div>

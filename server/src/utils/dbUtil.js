@@ -223,6 +223,20 @@ const getUsers = async () => {
     });
 };
 
+const editPoints = async (memID, data) => {
+    console.log(`editPoints called ${memID} - points: ${data.points} coins: ${data.coins}`);
+    const db = globalClient.db('games');
+    return db.collection('users').updateOne({"_id" : memID}, {$set : {"coins" : data.coins, "points": data.points}}, {returnOriginal: true}).then((array) => {
+        if(array.modifiedCount === 1) {
+            return {status: "success"};
+        } else if(array.modifiedCount === 0) {
+            return {status: "no change made"};
+        }
+    }).catch(() => {
+        return {status: "error"};
+    })
+}
+
 module.exports = {
     getPlayerSelectionStartedStatus,
     setGameStartTime,
@@ -240,5 +254,6 @@ module.exports = {
     getPlayerStartTime,
     addSelection,
     getUsers,
+    editPoints,
     getAccountDetails,
 }

@@ -17,6 +17,7 @@ const { getPlayerSelectionStartedStatus,
 	addSelection,
 	getAccountDetails,
 	getUsers,
+	editPoints,
 	setPlayerStartTime} = require("./utils/dbUtil");
 const e = require('express');
 
@@ -134,10 +135,14 @@ io.on('connection', (socket) => {
 		socket.emit("user accounts", users);
 	})
 
-	socket.on("edit points", (data) => {
-		if(data.secretKey !== serverSecretKey) return;
-		// TODO:
-		
+	socket.on("edit points", async (data) => {
+		console.log("Edit points triggered");
+		if(data.secretKey !== serverSecretKey){
+			socket.emit("edit points result", {status: "wrong key"});
+			return;
+		}
+		var result = await editPoints(data.memID, {"points" : data.points, "coins" : data.coins});
+		socket.emit("edit points result", result);
 	})
 
 	socket.on("player selected", async (data) => {

@@ -189,30 +189,33 @@ const showWaitingOverlay = (base) => {
     hideAllOverlays();
     stopCountdown();
     waitingSeconds = (300 - Math.ceil(new Date().getTime()/1000 - base/1000));
-    if(waitingSeconds > 0) waitingTimer = setInterval(() => {
-        var m = Math.floor(waitingSeconds/60);
-        var s = waitingSeconds%60;
-        if (s<10) s = `0${s}`;
-        $("#js-clock-seconds-waiting").text(`${m}:${s}`);
-        if(waitingSeconds == 0) {
-            $("#js-clock-seconds-waiting").text(`00:00`);
-            // TODO: some
-            socket.emit("waiting timeout exhausted", {gameID, memID});
-        }
-        waitingSeconds = waitingSeconds - 1;
-    }, 1000);
-    else {
+    if(waitingSeconds > 0) {
+        waitingTimer = setInterval(() => {
+            var m = Math.floor(waitingSeconds/60);
+            var s = waitingSeconds%60;
+            if (s<10) s = `0${s}`;
+            $("#js-clock-seconds-waiting").text(`${m}:${s}`);
+            if(waitingSeconds == 0) {
+                $("#js-clock-seconds-waiting").text(`00:00`);
+                // TODO: some
+                hideWaitingOverlay();
+                socket.emit("waiting timeout exhausted", {gameID, memID});
+            }
+            waitingSeconds = waitingSeconds - 1;
+        }, 1000);
+        $("#game-start-screen-freeze").css("display", "block");
+    } else {
+        hideWaitingOverlay();
         console.log("Waiting time neagtive!");
         console.log(base);
+        socket.emit("waiting timeout exhausted", {gameID, memID});
     }
-
-    $("#game-start-screen-freeze").css("display", "block");
 }
 
 const hideWaitingOverlay = () => {
     $("#game-start-screen-freeze").css("display", "none");
     clearInterval(waitingTimer);
-    $("#js-clock-seconds-waiting").text("4:00");
+    $("#js-clock-seconds-waiting").text("5:00");
 }
 
 const fastForward = (num) => {

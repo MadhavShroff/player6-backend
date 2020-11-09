@@ -22,9 +22,10 @@ MongoClient.connect(config.mongoose.url, {
 });
 
 router.get("/getMatchData", (req, res) => {
+	console.log("/getMatchData called");
 	const db = globalClient.db('games');
-	db.collection('matchData').find({}).toArray().then((arr) => {
-		res.json(arr);
+	db.collection('matchData').findOne({"_id":"data"}).then((data) => {
+		res.send(data.matchCards);
 	});
 });
 
