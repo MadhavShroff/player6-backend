@@ -1,3 +1,4 @@
+const e = require('express');
 const { MongoClient } = require('mongodb');
 const config = require('../config/config');
 
@@ -196,6 +197,32 @@ const setPlayerStartTime = async (data) => {
     });
 }
 
+const getAccountDetails = async (data) => {
+    console.log(`getAccountDetails called ${data.memID}`);
+    const db = globalClient.db('games');
+    return db.collection('users').findOneAndUpdate(
+        {"_id" : data.memID}, { $set : {"_id" : data.memID, "name": data.name, "email": data.email}}, { upsert : true}
+    ).then(res => {
+        if(res.value === null) { // ie no record found, ie first time ie one document would have been upserted, return 0, 0, update account with 0s, 
+            return db.collection('users').findOneAndUpdate(
+                {"_id" : data.memID}, { $set : {"coins" : 0, "points" : 0}}, { upsert : true}
+            ).then(res => {
+                return {"coins" : 0, "points" : 0};
+            });
+        } else { // return the document that matches the id, ie the actual account details. 
+            return {"coins" : res.value.coins, "points" : res.value.points}
+        }
+    });
+}
+
+const getUsers = async () => {
+    console.log(`getUsers called`);
+    const db = globalClient.db('games');
+    return db.collection('users').find({}).toArray().then((array) => {
+        return array;
+    });
+};
+
 module.exports = {
     getPlayerSelectionStartedStatus,
     setGameStartTime,
@@ -211,5 +238,7 @@ module.exports = {
     setGameStartTime,
     setPlayerStartTime,
     getPlayerStartTime,
-    addSelection
+    addSelection,
+    getUsers,
+    getAccountDetails,
 }

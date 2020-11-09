@@ -1,4 +1,3 @@
-delete matchCards;
 matchCards = {
     1: {
         matchID: 1,
@@ -19,6 +18,7 @@ matchCards = {
         },
         tossResults: "CSK",
         matchWinner: "Undeclared",
+        gameStarted: false,
         coverImgHref: "https://media.istockphoto.com/photos/closeup-of-red-cricket-ball-and-bat-sitting-on-grass-picture-id177427917?k=6&m=177427917&s=612x612&w=0&h=-q2U1BYuDKX2qQa7DcwTQ6PhkJifJcuuwo1HlpCjfC8="
     },
     2: {
@@ -40,6 +40,7 @@ matchCards = {
         },
         tossResults: "RR",
         matchWinner: "Undeclared",
+        gameStarted: false,
         coverImgHref: null,
     },
     3: {
@@ -61,6 +62,7 @@ matchCards = {
         },
         tossResults: "KKR",
         matchWinner: "Undeclared",
+        gameStarted: false,
         coverImgHref: null,
     },
     4: {
@@ -82,6 +84,7 @@ matchCards = {
         },
         tossResults: "RCB",
         matchWinner: "Undeclared",
+        gameStarted: false,
         coverImgHref: null,
     },
     5: {
@@ -103,6 +106,7 @@ matchCards = {
         },
         tossResults: "DC",
         matchWinner: "Undeclared",
+        gameStarted: false,
         coverImgHref: null,
     },
     6: {
@@ -124,6 +128,34 @@ matchCards = {
         },
         tossResults: "SRH",
         matchWinner: "Undeclared",
+        gameStarted: false,
         coverImgHref: null,
     }
- }
+}
+var matchCards;
+const fetchMatchData = async () => {
+    const response = fetch("https://player6backendweb.com/v1/game/getMatchData", {
+        // fetch("http://localhost:3000/v1/game/getGame", {
+                "headers": {
+                    "accept": "*/*",
+                    "cache-control": "no-cache",
+                    "content-type": "application/json",
+                    "pragma": "no-cache",
+                    "sec-fetch-dest": "empty",
+                    "sec-fetch-mode": "cors",
+                    "sec-fetch-site": "cross-site"
+                },
+                "referrerPolicy": "no-referrer-when-downgrade",
+                "method": "GET",
+                "mode": "cors"
+        }).then(response => {
+            return response.json().then(data => {
+                console.log(data);
+                matchCards = data;
+                return data;
+            });
+        }).catch( err => {
+            console.log('Fetch Error :-S', err);
+        });
+};
+fetchMatchData();

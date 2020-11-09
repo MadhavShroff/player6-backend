@@ -15,8 +15,12 @@ const { getPlayerSelectionStartedStatus,
 	getPlayerSelectionCompleted,
 	getPlayerStartTime,
 	addSelection,
+	getAccountDetails,
+	getUsers,
 	setPlayerStartTime} = require("./utils/dbUtil");
 const e = require('express');
+
+const serverSecretKey = "21df6974fff676c9032af96e9c3ca122";
 
 
 let globalClient;
@@ -34,6 +38,7 @@ const io = require('socket.io')(server);
 
 io.on('connection', (socket) => {
 	console.log('User connected');
+
 	socket.on('disconnect', () => {
 		console.log('User disconnected');
 	});
@@ -48,9 +53,9 @@ io.on('connection', (socket) => {
 		socket.join(gameID);
 		var startTime = await getPlayerSelectionStartedStatus(gameID);
 		var isCompleted = await getPlayerSelectionCompleted(gameID);
-		var b =  await getLatestTurn(data.gameID);
+		var turn =  await getLatestTurn(data.gameID);
 		console.log("getPlayerSelectionCompleted: " + isCompleted);
-		if(startTime === -1 || b === null) { 		// If player Selection has not started yet
+		if(startTime === -1 || turn === null) { 		// If player Selection has not started yet
 			io.of('/').in(gameID).clients( async (error, clients) => {
 				if (error) console.log(error);
 				console.log(clients);
@@ -73,36 +78,24 @@ io.on('connection', (socket) => {
 				}
 			});
 		} else { // Player Selection has already started
-			var turn = await getLatestTurn(data.gameID);
-			var compUser = await getComplimentUser(data.gameID, turn.user);
-			var newSel = await getPlayerSelection(gameID);
-			if(getPlayerSelectionCompletedFor(data.whichUser, newSel)) {
-				io.to(data.memID).emit("update", {"turn" : compUser, countdownBase: {"timestamp" : turn.timestamp, "user" : compUser}, playerSelectionCompleted: true, playerSelection: newSel, onlyMe: false})
-				io.to(compUser).emit("update", {"turn" : compUser, countdownBase: {"timestamp" : turn.timestamp, "user" : compUser}, playerSelectionCompleted: false, playerSelection: newSel, onlyMe: true})
-			} else if(getPlayerSelectionCompletedFor(compUser, newSel)) {
-				io.to(data.memID).emit("update", {"turn" : data.memID, countdownBase: {"timestamp" : turn.timestamp, "user" : data.memID}, playerSelectionCompleted: false, playerSelection: newSel, onlyMe: true}) // Indicates that other player has completed player Selection
-				io.to(compUser).emit("update", {"turn" : data.memID, countdownBase: {"timestamp" : turn.timestamp, "user" : data.memID}, playerSelectionCompleted: true, playerSelection: newSel, onlyMe: false}) // Indicates that other player has completed player Selection
-			} else { // Neither of the users have completed player selection
-				// if players have arrived after 1 min, and missed turns are to be added
-				var sel = newSel;
-				var ms = (60 - Math.ceil(new Date().getTime()/1000 - turn.timestamp/1000));
-				console.log(ms);
-				if(ms <= 0 && !isCompleted) {
-					var user = turn.user;
-					var time = turn.timestamp;
-					while(ms < 0) { // add turns before sending if time is negative
-						ms = ms + 60;
-						time = time + 60000;
-						sel = await addSelectionMissed(gameID, user);
-						turn = await addTurn(gameID, user, time);
-						user = await getComplimentUser(gameID, user); // gets compliment user
-					}
-					console.log(`Sent Update : ${turn.user} ${turn.timestamp} ${isCompleted}  { ${sel.user1} , ${sel.user2} }`);
-					io.to(gameID).emit("update", {"turn" : turn.user, countdownBase: turn, playerSelectionCompleted: isCompleted, playerSelection: sel, onlyMe: false})
-				} else { // if neither player selection is completed, and refreshed within time, 
-					console.log(`Sent Update : ${turn.user} ${turn.timestamp} ${isCompleted}  { ${sel.user1} , ${sel.user2} }`);
-					io.to(gameID).emit("update", {"turn": turn.user, countdownBase: turn, playerSelectionCompleted: isCompleted, playerSelection: sel, onlyMe: false})
+			var sel = await getPlayerSelection(gameID);
+			var ms = (60 - Math.ceil(new Date().getTime()/1000 - turn.timestamp/1000));
+			console.log(ms);
+			if(ms <= 0 && !isCompleted) {
+				var user = turn.user;
+				var time = turn.timestamp;
+				while(ms < 0) { // add turns before sending if time is negative
+					ms = ms + 60;
+					time = time + 60000;
+					sel = await addSelectionMissed(gameID, user);
+					turn = await addTurn(gameID, user, time);
+					user = await getComplimentUser(gameID, user); // gets compliment user
 				}
+				console.log(`Sent Update : ${turn.user} ${turn.timestamp} ${isCompleted}  { ${sel.user1} , ${sel.user2} }`);
+				io.to(gameID).emit("update", {"turn" : turn.user, countdownBase: turn, playerSelectionCompleted: isCompleted, playerSelection: sel, onlyMe: false})
+			} else { // if neither player selection is completed, and refreshed within time, 
+				console.log(`Sent Update : ${turn.user} ${turn.timestamp} ${isCompleted}  { ${sel.user1} , ${sel.user2} }`);
+				io.to(gameID).emit("update", {"turn": turn.user, countdownBase: turn, playerSelectionCompleted: isCompleted, playerSelection: sel, onlyMe: false})
 			}
 		}
 	});
@@ -129,6 +122,23 @@ io.on('connection', (socket) => {
 	}
 
 	socket.on("timer expired", timerExpired);
+
+	socket.on("get account", async (data) => {
+		console.log("get account called");
+		var account = await getAccountDetails(data);
+		socket.emit("account details", account);
+	})
+
+	socket.on("get user accounts", async () => {
+		var users = await getUsers();
+		socket.emit("user accounts", users);
+	})
+
+	socket.on("edit points", (data) => {
+		if(data.secretKey !== serverSecretKey) return;
+		// TODO:
+		
+	})
 
 	socket.on("player selected", async (data) => {
 		// determine if it is a legal selection

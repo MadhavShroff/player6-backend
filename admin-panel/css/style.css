@@ -38,36 +38,36 @@ body {
     background-color: #f9f9f9;
 }
 
-table {
+.card-body > table {
     border-collapse: collapse;
     text-align: left;
     width: 100%;
 }
-table tr {
+.card-body > table tr {
     border-bottom: 0;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     margin-bottom: 40px;
 }
-table th, table td {
+.card-body > table th, table td {
     padding: 0.2em;
 }
-table td {
+.card-body > table td {
     border: 1px solid;
     margin: 0 -1px -1px 0;
     padding-top: 30px;
     position: relative;
     width: 50%;
 }
-table td.single {
+.card-body > table td.single {
     border: 1px solid;
     margin: 0 -1px -1px 0;
     padding-top: 30px;
     position: relative;
     width: 100%;
 }
-table td span {
+.card-body > table td span {
     background: #eee;
     color: dimgrey;
     display: block;
@@ -79,11 +79,11 @@ table td span {
     top: 0;
     left: 0;
 }
-table td div {
+.card-body > table td div {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-table thead {
+.card-body > table thead {
     left: -9999px;
     position: absolute;
     visibility: hidden;

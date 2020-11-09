@@ -28,7 +28,12 @@ $(document).ready(() => {
             setName("Opponent");
             console.log("Error: Opponent name not defined!");
         }
-
+        if(matchCards[matchID].gameStarted) {
+            console.log("PlayerSelection Completed");
+            showPlayerSelectionCompletedOverlay();
+            clearTimeout(timeout);
+            return;
+        }
         for (let j = 1; j <=11; j++) {
             registerClickEvent($(`#card-left-${j}`));
             registerClickEvent($(`#card-right-${j}`));
@@ -52,7 +57,7 @@ $(document).ready(() => {
             console.log("Received udpate");
             console.log(data);
             // Player Selection Completed
-            if(isPlayerSelectionCompleted(data.playerSelection)) {
+            if(matchCards[matchID].gameStarted || isPlayerSelectionCompleted(data.playerSelection)) {
                 console.log("PlayerSelection Completed");
                 showPlayerSelectionCompletedOverlay();
                 clearTimeout(timeout);
