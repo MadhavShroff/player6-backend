@@ -18,6 +18,10 @@ const { getPlayerSelectionStartedStatus,
 	getAccountDetails,
 	getUsers,
 	editPoints,
+	declareTossResult,
+	declareWinner,
+	editMatchCard,
+	startGame,
 	setPlayerStartTime} = require("./utils/dbUtil");
 const e = require('express');
 
@@ -46,7 +50,7 @@ io.on('connection', (socket) => {
 
 	socket.on('join member room', (memID) => {
 		socket.join(memID);
-	})
+	});
 
 	socket.on('arrived at player selection', async ( data ) => {
 		var gameID = data.gameID;
@@ -134,6 +138,45 @@ io.on('connection', (socket) => {
 		var users = await getUsers();
 		socket.emit("user accounts", users);
 	})
+
+	socket.on("declare toss", async (data) => {
+		if(data.secretKey !== serverSecretKey){
+			socket.emit("declare toss/winner result", {status: "wrong key"});
+			return;
+		}
+		var result = await declareTossResult(data.matchID, data.winner);
+		socket.emit("declare toss/winner result", (result));
+	});
+
+	socket.on("declare winner", async (data) => {
+		console.log("Declare winner event received");
+		if(data.secretKey !== serverSecretKey){
+			socket.emit("declare toss/winner result", {status: "wrong key"});
+			return;
+		}
+		var result = await declareWinner(data.matchID, data.winner);
+		socket.emit("declare toss/winner result", (result));
+	});
+
+	socket.on("start game", async (data) => {
+		console.log("Start game event received");
+		if(data.secretKey !== serverSecretKey){
+			socket.emit("declare toss/winner result", {status: "wrong key"});
+			return;
+		}
+		var result = await startGame(data.matchID, data.isStart);
+		socket.emit("declare toss/winner result", (result));
+	});
+
+	socket.on("edit match card", async (data) => {
+		console.log("Edit match card event received");
+		if(data.secretKey !== serverSecretKey){
+			socket.emit("declare toss/winner result", {status: "wrong key"});
+			return;
+		}
+		var result = await editMatchCard(data.matchID, data);
+		socket.emit("declare toss/winner result", (result));
+	});
 
 	socket.on("edit points", async (data) => {
 		console.log("Edit points triggered");

@@ -41,13 +41,14 @@ async function checkForOpponent(id, tossSel, userNum, matchID) {
         });
 }
 
-$(document).ready(() => {
+$(document).ready(async () => {
+    await fetchMatchData();
     $("body > div.section-9 > div > div.div-block-57").hide() //
     MemberStack.onReady.then(async function(member) {
         metadata = await member.getMetaData();
         refreshData(metadata, true);
         setInterval(() => {
-            reload_js("https://player6-backend-1b41jo.surge.sh/js/match-data.js");
+            await fetchMatchData();
             refreshData(metadata, true);
         }, 2000);
     });

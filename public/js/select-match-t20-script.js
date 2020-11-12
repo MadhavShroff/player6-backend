@@ -1,4 +1,5 @@
-$(document).ready(() => {
+$(document).ready(async () => {
+    await fetchMatchData();
     $.each(matchCards, (idx, match) => {
         $(`#img-${idx}`).css("background-image", match.coverImgHref);
         $(`#match-date-${idx}`).text(match.date);

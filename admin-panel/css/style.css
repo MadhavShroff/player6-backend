@@ -22,6 +22,19 @@ body > div > div > div > div.btn-group {
     .card-columns {
       column-count: 1;
     }
+    #card-column-points {
+        width: auto;
+    }
+}
+@media screen and (min-width: 870px) {
+    #card-column-points {
+        width: fit-content;
+    }
+}
+@media screen and (max-width: 870px) {
+    #card-column-points {
+        width: auto;
+    }
 }
 
 body > div > div:nth-child(2) > div.col-md-8 > div.row > * {

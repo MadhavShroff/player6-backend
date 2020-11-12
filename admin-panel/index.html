@@ -4,130 +4,14 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 	<script src="https://player6-backend-1b41jo.surge.sh/js/match-data.js" type="text/javascript"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js" integrity="sha512-v8ng/uGxkge3d1IJuEo6dJP8JViyvms0cly9pnbfRxT6/31c3dRWxIiwGnMSWwZjHKOuY3EVmijs7k1jz/9bLA==" crossorigin="anonymous"></script>
 	<script src="https://unpkg.com/micromodal/dist/micromodal.min.js" type="text/javascript"></script>
 	<script src="https://unpkg.com/tether@1.4.0/dist/js/tether.js" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 	<link href="css/style.css" rel="stylesheet">
-	<script>
-		const socketEndpoint = 'wss://player6backendweb.com';
-		// const socketEndpoint = 'ws://localhost:3000'
-		const socket = io(socketEndpoint, {transports: ['websocket']});
-		console.log(socket);
-		$(document).ready( async () => {
-			await fetchMatchData();
-			deselectAllOptions();
-			$("#opt-cards").click( () => {
-				deselectAllOptions();
-				$("#opt-cards").removeClass("btn-secondary").addClass("btn-primary");
-				$("#card-column-cards").show();
-			});
-			$("#opt-points").click( () => {
-				deselectAllOptions();
-				$("#opt-points").removeClass("btn-secondary").addClass("btn-primary");
-				$("#card-column-points").show();
-			})
-			$.each(matchCards, (idx, match) => {
-				console.log(idx);
-				$(`#match-name-${idx}`).text("" + match.team1abbr + " vs " + match.team2abbr);
-				$(`#match-id-${idx}`).text(match.matchID);
-				$(`#team1-${idx}`).text(match.team1);
-				$(`#team2-${idx}`).text(match.team2);
-				$(`#team1-abbr-${idx}`).text(match.team1abbr);
-				$(`#team2-abbr-${idx}`).text(match.team2abbr);
-				$(`#date-${idx}`).text(match.date);
-				$(`#time-${idx}`).text(match.match_time);
-				$(`#entryReq-${idx}`).text(match.entryRequirement);
-				$(`#team1-players-${idx}`).innerHTML = "";
-				$.each(match.players.team1, (index, na) => {
-					$div = $("<div>", {"class":"badge badge-pill badge-primary mr-1 p-1"}).text(na);
-					$(`#team1-players-${idx}`).append($div);
-				})
-				$.each(match.players.team2, (index, na) => {
-					$div = $("<div>", {"class":"badge badge-pill badge-primary mr-1 p-1"}).text(na);
-					$(`#team2-players-${idx}`).append($div);
-				})
-				$(`#toss-${idx}`).text(match.tossResults);
-				$(`#winner-${idx}`).text(match.matchWinner);
-				if( match.coverImgHref === null ) $(`#cover-img-${idx}`).text("null");
-				else $("#cover-img-1").prepend($('<img>',{id:'coverImg', src:match.coverImgHref, style: "width: 100%"})); // set cover image in grid
-				$(`#edit-${idx}`).click(() => {	
-					$("#modal-match-name").val("Edit Match - " + match.team1abbr + " vs " + match.team2abbr);
-					$(`#modal-match-id`).val(match.matchID);
-					$(`#modal-team1`).val(match.team1);
-					$(`#modal-team2`).val(match.team2);
-					$(`#modal-team1-abbr`).val(match.team1abbr);
-					$(`#modal-team2-abbr`).val(match.team2abbr);
-					$(`#modal-date`).val(match.date);
-					$(`#modal-time`).val(match.match_time);
-					$(`#modal-entryReq`).val(match.entryRequirement);
-					$(`#modal-cover-img`).val(match.coverImgHref);
-					$("#editModal").modal("show");
-				})
-				$(`#declare-${idx}`).click(() => {
-					$("#declare-modal-match-name").text("Declare Toss for " + match.team1abbr + " vs " + match.team2abbr);
-					$("#declareModal").modal("show");
-				})
-			});
-			setTimeout(() => {socket.emit("get user accounts"); } , 1000);
-			socket.on("user accounts", (data) => {
-				$("#points-table > tbody").text("");
-				$.each(data, (idx, row) => { // each row
-					var $tr = $("<tr>");
-					$tr.append($("<th>", {"scope" : "row"}).text(row._id));
-					$tr.append($("<td>").text(row.name));
-					$tr.append($("<td>").text(row.email));
-					$tr.append($("<td>").text(row.points));	
-					$tr.append($("<td>").text(row.coins));
-					$tr.append(getEditButton(row));
-					$("#points-table > tbody").append($tr);
-				});
-			});
-			socket.on("edit points result", (data) =>{
-				console.log("Got points results");
-				if(data.status === "wrong key") {
-					alert("Secret key entered is invalid");
-				} else if (data.status === "error") {
-					alert("Internal Server Error");
-				} else if(data.status === "no change made") {
-					alert(`No change in points`);
-				} else if(data.status === "success") {
-					alert(`Successfully modified points`);
-				}
-				socket.emit("get user accounts");
-			});
-		});
-
-		const deselectAllOptions = () => {
-			$("#card-column-cards").hide();
-			$("#card-column-points").hide();
-			$.each($("#options").children(), (idx, child) => {
-				$(child).removeClass("btn-primary").addClass("btn-secondary");
-			});
-		}
-
-		const getEditButton = (row) => {
-			return $("<button>", {"type" : "button", "class" : "btn btn-primary m-2 pl-3 pr-3 p-1"}).text("Edit").click(() => {
-				$("#modal-points").val(row.points);
-				$("#modal-coins").val(row.coins);
-				$("#modal-points-submit").unbind();
-				$("#modal-points-submit").click(() => {
-					socket.emit("edit points", {
-						"secretKey" : $("#modal-secret-key-points").val(),
-					"points" : $("#modal-points").val(),
-						"memID": row._id,
-						"coins" :$("#modal-coins").val(),
-					});
-					console.log("emitted edit points");
-					$("#editPointsModal").modal("hide");
-				});	
-				$("#editPointsModal").modal("show");
-			})
-		}
-	</script>
 </head>
 <body>
     <div class="container-fluid">
@@ -156,18 +40,17 @@
 								<td><span>Toss Result</span><div id="toss-1"></div></td>
 								<td><span>Match Winner</span><div id="winner-1"></div></td>
 								<td><span>Cover Image href</span><div id="cover-img-1"></div></td>
+								<td><span>Game Started ?</span><div id="game-started-1"></div></td>
 							</tr>
 						</tbody>
 						<td class="single"><span>Team 1 Players</span><div id="team1-players-1"> </div></td>
 						<td class="single"><span>Team 2 Players</span><div id="team2-players-1"> </div></td>
 					</table>
-					<div class="btn-group" role="group">
-						<button class="btn btn-secondary" type="button" id="edit-1">
-							Edit
-						</button> 
-						<button class="btn btn-secondary checked" type="button" id="declare-1">
-							Declare Toss
-						</button>
+					<div role="group">
+						<button id="edit-1" type="button" class="btn btn-secondary m-1">Edit</button>
+						<button id="declare-toss-1" type="button" class="btn btn-secondary m-1">Declare Toss</button>
+						<button id="declare-winner-1" type="button" class="btn btn-secondary m-1">Declare Winner</button>
+						<button id="start-game-1" type="button" class="btn btn-secondary m-1">Game Started</button>
 					</div>
 				  </div>
 				</div>
@@ -188,18 +71,17 @@
 								<td><span>Toss Result</span><div id="toss-2"></div></td>
 								<td><span>Match Winner</span><div id="winner-2"></div></td>
 								<td><span>Cover Image href</span><div id="cover-img-2"></div></td>
+								<td><span>Game Started ?</span><div id="game-started-2"></div></td>
 							</tr>
 						</tbody>
 						<td class="single"><span>Team 1 Players</span><div id="team1-players-2"> </div></td>
 						<td class="single"><span>Team 2 Players</span><div id="team2-players-2"> </div></td>
 					</table>
-					<div class="btn-group" role="group">
-						<button class="btn btn-secondary" type="button" id="edit-2">
-							Edit
-						</button> 
-						<button class="btn btn-secondary checked" type="button" id="declare-2">
-							Declare Toss
-						</button>
+					<div role="group">
+						<button id="edit-2" type="button" class="btn btn-secondary m-1">Edit</button>
+						<button id="declare-toss-2" type="button" class="btn btn-secondary m-1">Declare Toss</button>
+						<button id="declare-winner-2" type="button" class="btn btn-secondary m-1">Declare Winner</button>
+						<button id="start-game-2" type="button" class="btn btn-secondary m-1">Game Started</button>
 					</div>
 					</div>
 				</div>
@@ -220,19 +102,18 @@
 								  <td><span>Toss Result</span><div id="toss-3"></div></td>
 								  <td><span>Match Winner</span><div id="winner-3"></div></td>
 								  <td><span>Cover Image href</span><div id="cover-img-3"></div></td>
+								  <td><span>Game Started ?</span><div id="game-started-3"></div></td>
 							  </tr>
 						  </tbody>
 						  <td class="single"><span>Team 1 Players</span><div id="team1-players-3"> </div></td>
 						  <td class="single"><span>Team 2 Players</span><div id="team2-players-3"> </div></td>
 					  </table>
-					  <div class="btn-group" role="group">
-						<button class="btn btn-secondary" type="button" id="edit-3">
-							Edit
-						</button> 
-						<button class="btn btn-secondary checked" type="button" id="declare-3">
-							Declare Toss
-						</button>
-					</div>
+					  <div role="group">
+						<button id="edit-3" type="button" class="btn btn-secondary m-1">Edit</button>
+						<button id="declare-toss-3" type="button" class="btn btn-secondary m-1">Declare Toss</button>
+						<button id="declare-winner-3" type="button" class="btn btn-secondary m-1">Declare Winner</button>
+						<button id="start-game-3" type="button" class="btn btn-secondary m-1">Game Started</button>
+					  </div>
 					</div>
 				</div>
 				<div class="card" id="card-4">
@@ -252,19 +133,18 @@
 								  <td><span>Toss Result</span><div id="toss-4"></div></td>
 								  <td><span>Match Winner</span><div id="winner-4"></div></td>
 								  <td><span>Cover Image href</span><div id="cover-img-4"></div></td>
+								  <td><span>Game Started ?</span><div id="game-started-4"></div></td>
 							  </tr>
 						  </tbody>
 						  <td class="single"><span>Team 1 Players</span><div id="team1-players-4"> </div></td>
 						<td class="single"><span>Team 2 Players</span><div id="team2-players-4"> </div></td>
 					  </table>
-					  <div class="btn-group" role="group">
-						<button class="btn btn-secondary" type="button" id="edit-4">
-							Edit
-						</button> 
-						<button class="btn btn-secondary checked" type="button" id="declare-4">
-							Declare Toss
-						</button>
-					</div>
+					  <div role="group">
+						<button id="edit-4" type="button" class="btn btn-secondary m-1">Edit</button>
+						<button id="declare-toss-4" type="button" class="btn btn-secondary m-1">Declare Toss</button>
+						<button id="declare-winner-4" type="button" class="btn btn-secondary m-1">Declare Winner</button>
+						<button id="start-game-4" type="button" class="btn btn-secondary m-1">Game Started</button>
+					  </div>
 					  </div>
 				</div>
 				<div class="card" id="card-5">
@@ -284,19 +164,18 @@
 								  <td><span>Toss Result</span><div id="toss-5"></div></td>
 								  <td><span>Match Winner</span><div id="winner-5"></div></td>
 								  <td><span>Cover Image href</span><div id="cover-img-5"></div></td>
+								  <td><span>Game Started ?</span><div id="game-started-5"></div></td>
 							  </tr>
 							  <td class="single"><span>Team 1 Players</span><div id="team1-players-5"> </div></td>
 							  <td class="single"><span>Team 2 Players</span><div id="team2-players-5"> </div></td>
 						  </tbody>
 					  </table>
-					  <div class="btn-group" role="group">
-						<button class="btn btn-secondary" type="button" id="edit-5">
-							Edit
-						</button> 
-						<button class="btn btn-secondary checked" type="button" id="declare-5">
-							Declare Toss
-						</button>
-					</div>
+					  <div role="group">
+						<button id="edit-5" type="button" class="btn btn-secondary m-1">Edit</button>
+						<button id="declare-toss-5" type="button" class="btn btn-secondary m-1">Declare Toss</button>
+						<button id="declare-winner-5" type="button" class="btn btn-secondary m-1">Declare Winner</button>
+						<button id="start-game-5" type="button" class="btn btn-secondary m-1">Game Started</button>
+					  </div>
 					</div>
 				</div>
 				<div class="card" id="card-6">
@@ -316,23 +195,22 @@
 								  <td><span>Toss Result</span><div id="toss-6"></div></td>
 								  <td><span>Match Winner</span><div id="winner-6"></div></td>
 								  <td><span>Cover Image href</span><div id="cover-img-6"></div></td>
+								  <td><span>Game Started ?</span><div id="game-started-6"></div></td>
 							  </tr>
 						  </tbody>
 						  <td class="single"><span>Team 1 Players</span><div id="team1-players-6"> </div></td>
 						  <td class="single"><span>Team 2 Players</span><div id="team2-players-6"> </div></td>
 					  </table>
-					  <div class="btn-group" role="group">
-						<button class="btn btn-secondary" type="button" id="edit-6">
-							Edit
-						</button> 
-						<button class="btn btn-secondary checked" type="button" id="declare-6">
-							Declare Toss
-						</button>
-					</div>
+					  <div role="group">
+						<button id="edit-6" type="button" class="btn btn-secondary m-1">Edit</button>
+						<button id="declare-toss-6" type="button" class="btn btn-secondary m-1">Declare Toss</button>
+						<button id="declare-winner-6" type="button" class="btn btn-secondary m-1">Declare Winner</button>
+						<button id="start-game-6" type="button" class="btn btn-secondary m-1">Game Started</button>
+					  </div>
 					  </div>
 				</div>
 			</div>
-			<div id="card-column-points" class="p-3 mx-auto" style="width: fit-content;">
+			<div id="card-column-points" class="p-3 mx-auto">
 				<div class="card p-3">
 						<h3 class="card-title">Points and Coins</h3>
 						<p>Click the edit button to modify the points or coins for a user</p>
@@ -348,24 +226,6 @@
 							</tr>
 						  </thead>
 						  <tbody>
-							<tr>
-							  <th scope="row">1</th>
-							  <td>Mark</td>
-							  <td>Otto</td>
-							  <td>@mdo</td>
-							</tr>
-							<tr>
-							  <th scope="row">2</th>
-							  <td>Jacob</td>
-							  <td>Thornton</td>
-							  <td>@fat</td>
-							</tr>
-							<tr>
-							  <th scope="row">3</th>
-							  <td>Larry</td>
-							  <td>the Bird</td>
-							  <td>@twitter</td>
-							</tr>
 						  </tbody>
 						</table>
 				  </div>
@@ -387,7 +247,7 @@
 						<div class="input-group-prepend">
 						  <span class="input-group-text">Match ID</span>
 						</div>
-						<input id="modal-match-id" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+						<input id="modal-match-id" type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1" readonly>
 					</div>
 					<div class="input-group mb-3">
 						<div class="input-group-prepend">
@@ -441,12 +301,12 @@
 						<div class="input-group-prepend">
 						  <span class="input-group-text">Secret Key</span>
 						</div>
-						<input id="modal-secret-key" type="text" class="form-control" placeholder="32 digit admin key" aria-label="Username" aria-describedby="basic-addon1">
+						<input id="modal-secret-key-edit" type="text" class="form-control" placeholder="32 digit admin key" aria-label="Username" aria-describedby="basic-addon1">
 					</div>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-					<button type="button" class="btn btn-primary">Save changes</button>
+					<button id="modal-edit-submit" type="button" class="btn btn-primary">Save changes</button>
 				</div>
 			</div>
 		</div>
@@ -463,10 +323,11 @@
 				<div class="modal-body">
 					<div class="input-group mb-3">
 						<div class="input-group-prepend">
-						  <button class="btn btn-outline-secondary" type="button">Button</button>
-						  <button class="btn btn-outline-secondary" type="button">Button</button>
+						  <button class="btn btn-outline-secondary" type="button" id="modal-declare-team1"><span>Button</span></button>
+						  <button class="btn btn-outline-secondary" type="button" id="modal-declare-team2"><span>Button</span></button>
+						  <button class="btn btn-outline-secondary" type="button" id="modal-declare-team3"><span>Button</span></button>
 						</div>
-						<input type="text" class="form-control" placeholder="Team chosen" readonly aria-label="" aria-describedby="basic-addon1">
+						<input id="modal-team-chosen" type="text" class="form-control" placeholder="Choose an option" aria-label="" readonly aria-describedby="basic-addon1">
 					</div>
 					<div class="input-group mb-3">
 						<div class="input-group-prepend">
@@ -476,7 +337,7 @@
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-						<button type="button" class="btn btn-primary">Save changes</button>
+						<button type="button" class="btn btn-primary" id="modal-declare-submit">Save changes</button>
 					</div>
 				</div>
 			</div>
@@ -496,13 +357,13 @@
 						<div class="input-group-prepend">
 						  <span class="input-group-text">Points</span>
 						</div>
-						<input id="modal-points" type="text" class="form-control" placeholder="Secret key" aria-label="Username" aria-describedby="basic-addon1">
+						<input id="modal-points" type="text" class="form-control" placeholder="0" aria-label="Username" aria-describedby="basic-addon1">
 					</div>
 					<div class="input-group mb-3">
 						<div class="input-group-prepend">
 						  <span class="input-group-text">Coins</span>
 						</div>
-						<input id="modal-coins" type="text" class="form-control" placeholder="Secret key" aria-label="Username" aria-describedby="basic-addon1">
+						<input id="modal-coins" type="text" class="form-control" placeholder="0" aria-label="Username" aria-describedby="basic-addon1">
 					</div>
 					<div class="input-group mb-3">
 						<div class="input-group-prepend">

@@ -4,7 +4,8 @@ var memID = null;
 var gameID = null;
 var matchID = null;
 var timeout;
-$(document).ready(() => {
+$(document).ready(async () => {
+    await fetchMatchData();
     $("#close-button").click(() => {
         hideModal();
     })

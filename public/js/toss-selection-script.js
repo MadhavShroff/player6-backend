@@ -1,4 +1,5 @@
-$(document).ready(() => {
+$(document).ready(async () => {
+    await fetchMatchData();
     MemberStack.onReady.then(async function(member) {
         const metad = await member.getMetaData();
         $("#team-2").text(matchCards[metad.gameState.matchID].team2abbr);

@@ -1,4 +1,5 @@
-$(document).ready(() => {
+$(document).ready(async () => {
+    await fetchMatchData();
     MemberStack.onReady.then(async function(member) {
         var metadata = await member.getMetaData();
         var selection = await getPlayerSelection(metadata.gameState.gameID);

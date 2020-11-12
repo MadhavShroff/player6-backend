@@ -1,4 +1,5 @@
-$(document).ready(() => {
+$(document).ready(async () => {
+    await fetchMatchData();
     $("body > div.section-9.cta-player-selection > div > div > div").hide();
     MemberStack.onReady.then(async function(member) {
         const metadata = await member.getMetaData();

@@ -237,6 +237,84 @@ const editPoints = async (memID, data) => {
     })
 }
 
+const declareTossResult = async (matchID, winner) => {
+    console.log(`declareTossResult called, match - ${matchID} - toss winner: ${winner}`);
+    const db = globalClient.db('games');
+    var se = {}
+    se[`matchCards.${matchID}.tossResults`] = winner;
+    return db.collection('matchData').updateOne({"_id" : "data"}, 
+        {$set : se}, {returnOriginal: true}).then((array) => {
+        if(array.modifiedCount === 1) {
+            if(winner === "Undeclared") return {status: "success", msg: `Successfully Undeclared toss. Players will not be able to proceed to player selection`};
+            else return {status: "success", msg: `Successfully declared toss. The "View results" button is now visible for this match. Players may proceed to player selection`};
+        } else if(array.modifiedCount === 0) {
+            return {status: "no change made"};
+        }
+    }).catch((err) => {
+        return {status: "error", msg: err};
+    });
+};
+
+const declareWinner = async (matchID, winner) => {
+    console.log(`declareWinner called, match - ${matchID} - winner: ${winner}`);
+    const db = globalClient.db('games');
+    var se = {}
+    se[`matchCards.${matchID}.matchWinner`] = winner;
+    return db.collection('matchData').updateOne({"_id" : "data"}, 
+        {$set : se}, {returnOriginal: true}).then((array) => {
+        if(array.modifiedCount === 1) {
+            if(winner === "Undeclared") return {status: "success", msg: `Successfully Undeclared match winner`};
+            else return {status: "success", msg: `Successfully declared match winner`};
+        } else if(array.modifiedCount === 0) {
+            return {status: "no change made"};
+        }
+    }).catch((err) => {
+        return {status: "error", msg: err};
+    });
+};
+
+const editMatchCard = async (matchID, data) => {
+    console.log(`declareWinner called, match - ${matchID}`);
+    const db = globalClient.db('games');
+    var se = {}
+    se[`matchCards.${matchID}.team1`] = data.team1;
+    se[`matchCards.${matchID}.team2`] = data.team2;
+    se[`matchCards.${matchID}.team1abbr`] = data.team1abbr;
+    se[`matchCards.${matchID}.team2abbr`] = data.team2abbr;
+    se[`matchCards.${matchID}.date`] = data.date;
+    se[`matchCards.${matchID}.time`] = data.time;
+    se[`matchCards.${matchID}.entryRequirement`] = data.entryRequirement;
+    se[`matchCards.${matchID}.coverImgHref`] = data.coverImgHref;
+    return db.collection('matchData').updateOne({"_id" : "data"}, 
+        {$set : se}, {returnOriginal: true}).then((array) => {
+            if(array.modifiedCount === 1) {
+                return {status: "success", msg : "Successfully reflected changes"};
+            } else if(array.modifiedCount === 0) {
+                return {status: "no change made"};
+            }
+    }).catch((err) => {
+        return {status: "error", msg: err};
+    });
+};
+
+const startGame = async (matchID, isStart) => {
+    console.log(`startGame called, match - ${matchID}, ${isStart}`);
+    const db = globalClient.db('games');
+    var se = {}
+    se[`matchCards.${matchID}.gameStarted`] = isStart === "True" ? true : false;
+    return db.collection('matchData').updateOne({"_id" : "data"}, 
+        {$set : se}, {returnOriginal: true}).then((array) => {
+            if(array.modifiedCount === 1) {
+                return {status: "success", msg : "Successfully reflected changes"};
+            } else if(array.modifiedCount === 0) {
+                return {status: "no change made"};
+            }
+    }).catch((err) => {
+        return {status: "error", msg: err};
+    });
+}
+
+
 module.exports = {
     getPlayerSelectionStartedStatus,
     setGameStartTime,
@@ -255,5 +333,9 @@ module.exports = {
     addSelection,
     getUsers,
     editPoints,
+    declareTossResult,
+    declareWinner, 
+    editMatchCard,
+    startGame,
     getAccountDetails,
 }

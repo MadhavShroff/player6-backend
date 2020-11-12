@@ -1,7 +1,7 @@
 var matchCards;
 var fetchMatchData = async () => {
-    // const response = fetch("https://player6backendweb.com/v1/game/getMatchData", {
-    return await fetch("http://localhost:3000/v1/game/getMatchData", {
+    return await fetch("https://player6backendweb.com/v1/game/getMatchData", {
+    // return await fetch("http://localhost:3000/v1/game/getMatchData", {
                 "headers": {
                     "accept": "*/*",
                     "cache-control": "no-cache",
@@ -16,6 +16,7 @@ var fetchMatchData = async () => {
                 "mode": "cors"
         }).then(response => {
             return response.json().then(data => {
+                console.log(data);
                 matchCards = data;
                 return data;
             });
