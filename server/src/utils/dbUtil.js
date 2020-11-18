@@ -314,6 +314,65 @@ const startGame = async (matchID, isStart) => {
     });
 }
 
+const getPlayerSelectionIds = async (gameID) => {
+    console.log(`getPlayerSelectionIds called ${gameID}`);
+    const db = globalClient.db('games');
+    return db.collection('matchedGames').findOne(
+        { pendingGameID: gameID }
+    ).then(result => {
+        if(result !== null) {
+            var x = {};
+            x[result.user1.memID] = result.playerSelection.user1;
+            x[result.user2.memID] = result.playerSelection.user2;
+            return x;
+        }
+    })
+}
+
+const getGamesAndPlayerSelectionHavingMatchID = async (matchID) => {
+    console.log(`getGamesAndPlayerSelectionHavingMatchID called ${matchID}`);
+    const db = globalClient.db('games');
+    return db.collection('matchedGames').find({}).toArray().then((array) => {
+        var l = [];
+        var games = array.filter(i => i.gameInfo["gameID"].toString() === matchID);
+        games.forEach(game => {
+            l.push({
+                    "gameID" : game.pendingGameID, 
+                    "playerSelection": {
+                        "memId1" : game.user1.memID, 
+                        "ps1" : game.playerSelection.user1, 
+                        "memId2" : game.user2.memID, 
+                        "ps2" : game.playerSelection.user2
+                    }
+                }
+            );
+        });
+        return l;
+    })
+}
+
+const levyFine = async (memID, gameID, fineAmount) => {
+    console.log(`fineLevied called ${memID} - fine amount: ${fineAmount}`);
+    const db = globalClient.db('games');
+    db.collection('users').findOne({"_id" : memID}).then((result) => {
+        if(result != null) 
+        db.collection('users').findOneAndUpdate({"_id" : memID}, {$set : {"points" : String((parseInt(result.points) - 1000)) }}).then(() => {
+            db.collection('matchedGames').findOneAndUpdate({ pendingGameID: gameID }, 
+                {$set : {"fineLevied" : {
+                    "reason" : "Selected less than 3 players",
+                    "timestamp" : new Date().getTime(),
+                    "beforeFine" : result.points,
+                    "afterFine" : String((parseInt(result.points) - 1000)),
+                    "fineAmount" : 1000,
+            }}}).then(() => {
+                return;
+            });
+        });
+    }).catch(() => {
+        return {status: "error"};
+    })
+}
+
 
 module.exports = {
     getPlayerSelectionStartedStatus,
@@ -338,4 +397,7 @@ module.exports = {
     editMatchCard,
     startGame,
     getAccountDetails,
+    getPlayerSelectionIds,
+    levyFine,
+    getGamesAndPlayerSelectionHavingMatchID
 }

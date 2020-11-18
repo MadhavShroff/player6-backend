@@ -40,7 +40,7 @@ router.post('/createOrJoinGame', (req, response) => {
 		gameInfo: {
 			contestChosen: gameState.contestChosen,
 			gameType: gameState.gameType,
-			gameID: gameState.matchID,
+			matchID: gameState.matchID,
 		},
 		user1: {
 			...userInfo
@@ -76,6 +76,7 @@ router.post('/createOrJoinGame', (req, response) => {
 					playerSelectionStartTime: -1,
 					playerSelectionCompleted: false,
 					turns: [],
+					fineLevied : null,
 					gameStarted: {
 						"user1": -1,
 						"user2": -1

@@ -1,4 +1,7 @@
 $(document).ready(async () => {
+    // TODO: delete any game objects from pendingGames collection in db, if arrived at this page (delete any empty, abandoned game rooms if they exist)
+        // ie if user creates a pending game, and proceeds to either toss selection or results, 
+        // and then returns to select-match, the previously created game object in pendingGames should be removed
     await fetchMatchData();
     $.each(matchCards, (idx, match) => {
         $(`#img-${idx}`).css("background-image", match.coverImgHref);

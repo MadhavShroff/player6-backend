@@ -47,10 +47,10 @@ $(document).ready(async () => {
     MemberStack.onReady.then(async function(member) {
         metadata = await member.getMetaData();
         refreshData(metadata, true);
-        setInterval(() => {
+        setInterval(async () => {
             await fetchMatchData();
             refreshData(metadata, true);
-        }, 2000);
+        }, 3500);
     });
 });
 

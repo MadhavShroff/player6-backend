@@ -88,6 +88,12 @@ $(document).ready(async () => {
             // Player Selection
             setCardsInDrawers(data.playerSelection);
         })
+        socket.on("match started", (data) => { // If this match starts, end player selection
+            console.log("PlayerSelection Completed - match started");
+            showPlayerSelectionCompletedOverlay();
+            clearTimeout(timeout);
+            return;
+        });
         socket.on("Illegal player selection", () => {
             showModal();
             $("#modal-popup > div.div-block-59 > div").text("Cannot pick >5 per team !!");
@@ -96,6 +102,14 @@ $(document).ready(async () => {
                 hideModal();
                 $("#yes-button").text("Yes").unbind();
             });
+        });
+        socket.on("fine levied - less than 3 players selected", (data) => {
+            console.log("Fine Levied");
+            alert(`Fine of ${data.fineAmount} points has been levied on your account, since you failed to select at least 3 players before the match starts`);
+        });
+        socket.on("game is void", (data) => {
+            alert("This game is void, since one or both players failed to select at least 3 players before the match starts");
+            window.location = "/choose-a-contest-1";
         })
     });
 })
@@ -111,13 +125,6 @@ const hideModal = () => {
 
 async function onPlayerSelect(event, playerSelected) {
     if(event!= null) event.preventDefault();
-    //TODO : Come back from here. 
-    // Add socket actions on playerSelect, add turns and update() function for server
-    // Points, ask about coins
-    // Finish admin page
-
-    // socket.emit("player selected", {gameid, memid, player selected});
-
     showModal();
     $("#modal-popup > div.div-block-59 > div").text(`Sure about ${playerSelected}?`);
     $("#yes-button").text("Yes").unbind();

@@ -9,6 +9,7 @@ const { getPlayerSelectionStartedStatus,
 	getTossWinner, 
 	getLatestTurn, 
 	getPlayerSelection, 
+	getPlayerSelectionIds,
 	getComplimentUser,
 	addSelectionMissed,
 	updatePlayerSelectionCompleted,
@@ -22,10 +23,14 @@ const { getPlayerSelectionStartedStatus,
 	declareWinner,
 	editMatchCard,
 	startGame,
+	getGamesAndPlayerSelectionHavingMatchID,
+	levyFine,
 	setPlayerStartTime} = require("./utils/dbUtil");
 const e = require('express');
 
-const serverSecretKey = "21df6974fff676c9032af96e9c3ca122";
+const serverSecretKey = "21df6974fff676c9032af96e9c3ca122"; 
+// TODO: move secret key to config and read from environment variable
+// TODO: get actual fine amount from admin page, currently value is hardcoded to 100. 
 
 
 let globalClient;
@@ -129,7 +134,6 @@ io.on('connection', (socket) => {
 	socket.on("timer expired", timerExpired);
 
 	socket.on("get account", async (data) => {
-		console.log("get account called");
 		var account = await getAccountDetails(data);
 		socket.emit("account details", account);
 	})
@@ -158,13 +162,39 @@ io.on('connection', (socket) => {
 		socket.emit("declare toss/winner result", (result));
 	});
 
-	socket.on("start game", async (data) => {
+	//TODO: change hardcoded value
+	socket.on("start game", async (data) => { // called when start game event is emited from the admin page
 		console.log("Start game event received");
+		console.log(data);
 		if(data.secretKey !== serverSecretKey){
 			socket.emit("declare toss/winner result", {status: "wrong key"});
 			return;
 		}
 		var result = await startGame(data.matchID, data.isStart);
+		if(result.status === "success" && (data.isStart == "True")) {
+			var games = await getGamesAndPlayerSelectionHavingMatchID(data.matchID); // returns a list with gameID and matchID as: 
+			// [ { "gameID" : "", playerSelection: {"memId1" : "", "ps1" : [], "memID2" : "", "ps2" : []}}, {"gameID": "", playerSelection : {...}, ... ]
+			games.forEach(async game => {
+				console.log(game);
+				if(game.playerSelection.ps1.filter((i) => i!== "- Turn Missed -").length < 3 
+				&& game.playerSelection.ps2.filter((i) => i!== "- Turn Missed -").length < 3) { // if both players selected less than 3 players
+					console.log("game is void, no fine for anyone");
+					io.to(game.gameID).emit("game is void");
+				} else if (game.playerSelection.ps1.filter((i) => i!== "- Turn Missed -").length < 3) {
+					console.log("game is void, fine levied for memID1");
+					await levyFine(game.playerSelection.memId2, game.gameID, 1000); // fine of 1000 points levied on memId2
+					io.to(game.playerSelection.memId1).emit("fine levied - less than 3 players selected", {fineAmount: 1000});
+					io.to(game.gameID).emit("game is void");
+				} else if(game.playerSelection.ps2.filter((i) => i!== "- Turn Missed -").length < 3) {
+					console.log("game is void, fine levied for memID2");
+					await levyFine(game.playerSelection.memId1, game.gameID, 1000); // fine of 1000 points levied on memId1
+					io.to(game.playerSelection.memId2).emit("fine levied - less than 3 players selected", {fineAmount: 1000});
+					io.to(game.gameID).emit("game is void");
+				} else; // neither player has a selected < 3 players, emit match start, proceed to scoreboard.
+				console.log(`emiting match started to gameID ${game.gameID}`);
+				io.to(game.gameID).emit("match started");
+			});
+		}
 		socket.emit("declare toss/winner result", (result));
 	});
 
@@ -236,26 +266,6 @@ io.on('connection', (socket) => {
 		await updatePlayerSelectionCompleted(gameID);
 	})
 });
-
-const getPlayerSelectionCompletedFor = (user, sel) => { // returns if player selection completed overlay should be shown for a particulat user
-    var u1count = 0; var u2count = 0;
-    var missedCountUser1 = 0; var missedCountUser2 = 0;
-	if(user === "user1") {
-		sel.user1.forEach((name) => {
-			if(name !== "- Turn Missed -") u1count = u1count + 1;
-			else missedCountUser1 = missedCountUser1 + 1;
-		});
-		if(u1count >= 6) return true;
-        else return false;
-	} else { // user2
-		sel.user1.forEach((name) => {
-			if(name !== "- Turn Missed -") u2count = u2count + 1;
-			else missedCountUser2 = missedCountUser2 + 1;
-		});
-		if(u2count >= 6) return true;
-        else return false;
-	}
-}
 
 const exitHandler = () => {
 	if (server) {
