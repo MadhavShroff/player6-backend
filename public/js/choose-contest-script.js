@@ -24,7 +24,7 @@ var clickListener = async (event, contest, member) => {
 		if(pointsRequired[contest] > myPoints) {
 			alert(`You do not have enough points for this contest! Cannot proceed\n You have ${myPoints} points, and contest "${contest}" requires ${pointsRequired[contest]} points`);
 		} else {
-			member.updateMetaData({contestChosen: contest}).then(() => {
+			member.updateMetaData({ gameState : { "contestChosen" : contest} }).then(() => {
 				window.location = "/select-match/select-match-testing";
 		  });
 		}

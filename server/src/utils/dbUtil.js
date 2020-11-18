@@ -334,7 +334,7 @@ const getGamesAndPlayerSelectionHavingMatchID = async (matchID) => {
     const db = globalClient.db('games');
     return db.collection('matchedGames').find({}).toArray().then((array) => {
         var l = [];
-        var games = array.filter(i => i.gameInfo["gameID"].toString() === matchID);
+        var games = array.filter(i => i.gameInfo["matchID"].toString() === matchID);
         games.forEach(game => {
             l.push({
                     "gameID" : game.pendingGameID, 

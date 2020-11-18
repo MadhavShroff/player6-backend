@@ -1,5 +1,7 @@
 MemberStack.onReady.then(async function(member) {
-  console.log(member);
+  member.getMetaData().then((metadata) => {
+      console.log(metadata);
+  });
   if(member.loggedIn){
     socket.on("account details", (data) => {
       $("#nav-coins").text(`${data.coins} COINS`);
