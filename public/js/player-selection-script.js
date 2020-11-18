@@ -109,7 +109,7 @@ $(document).ready(async () => {
         });
         socket.on("game is void", (data) => {
             alert("This game is void, since one or both players failed to select at least 3 players before the match starts");
-            window.location = "/choose-a-contest-1";
+            setTimeout(() => window.location = "/choose-a-contest-1", 3000);
         })
     });
 })

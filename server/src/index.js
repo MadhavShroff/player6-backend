@@ -176,6 +176,7 @@ io.on('connection', (socket) => {
 		if(result.status === "success" && (data.isStart == "True")) {
 			var games = await getGamesAndPlayerSelectionHavingMatchID(data.matchID); // returns a list with gameID and matchID as: 
 			// [ { "gameID" : "", playerSelection: {"memId1" : "", "ps1" : [], "memID2" : "", "ps2" : []}}, {"gameID": "", playerSelection : {...}, ... ]
+			console.log(games);
 			games.forEach(async game => {
 				console.log(game);
 				if(game.playerSelection.ps1.filter((i) => i!== "- Turn Missed -").length < 3 

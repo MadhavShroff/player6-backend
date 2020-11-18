@@ -1,5 +1,5 @@
-const socketEndpoint = 'wss://player6backendweb.com';
-// const socketEndpoint = 'ws://localhost:3000' 
+// const socketEndpoint = 'wss://player6backendweb.com';
+const socketEndpoint = 'ws://localhost:3000' 
 const socket = io(socketEndpoint, {transports: ['websocket']});
 console.log(socket);
 $(document).ready( async () => {
