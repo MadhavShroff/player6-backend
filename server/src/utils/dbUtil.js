@@ -373,6 +373,34 @@ const levyFine = async (memID, gameID, fineAmount) => {
     })
 }
 
+const editPlayers = async (matchID, data) => {
+    console.log(`editPlayers called, match - ${matchID}`);
+    const db = globalClient.db('games');
+    var se = {}
+    se[`matchCards.${matchID}.players`] = data.players;
+    se[`matchCards.${matchID}.scores`] = data.scores;
+    return db.collection('matchData').updateOne({"_id" : "data"}, 
+        {$set : se}, {returnOriginal: true}).then((array) => {
+            if(array.modifiedCount === 1) {
+                return {status: "success", msg : "Successfully modified player data"};
+            } else if(array.modifiedCount === 0) {
+                return {status: "no change made"};
+            }
+    }).catch((err) => {
+        return {status: "error", msg: err};
+    });
+}
+
+const getPoints = async (memID) => {
+    console.log(`getPoints called ${memID}`);
+    const db = globalClient.db('games');
+    return db.collection('users').findOne( {"_id" : memID}).then((array) => {
+       return parseInt(array.points);
+    }).catch(() => {
+        return 0;
+    })
+}
+
 
 module.exports = {
     getPlayerSelectionStartedStatus,
@@ -399,5 +427,7 @@ module.exports = {
     getAccountDetails,
     getPlayerSelectionIds,
     levyFine,
+    editPlayers,
+    getPoints,
     getGamesAndPlayerSelectionHavingMatchID
 }

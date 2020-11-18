@@ -28,17 +28,66 @@ $(document).ready( async () => {
         $(`#time-${idx}`).text(match.match_time);
         $(`#entryReq-${idx}`).text(match.entryRequirement);
         $(`#game-started-${idx}`).text(match.gameStarted);
+        $(`#toss-${idx}`).text(match.tossResults);
+        $(`#winner-${idx}`).text(match.matchWinner);
         $(`#team1-players-${idx}`).innerHTML = "";
+        $(`#edit-players-${idx}`).click(() => {
+            $.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], (idx, i) => {
+                $(`#ep-name-${i}-left`).val(match.players.team1[i-1]);
+                $(`#ep-name-${i}-right`).val(match.players.team2[i-1]);
+                if(match.players.team1[i-1] in match.scores) {
+                    $(`#ep-score-${i}-left`).val(match.scores[match.players.team1[i-1]]);
+                } else {
+                    $(`#ep-score-${i}-left`).val("");
+                }
+                if(match.players.team2[i-1] in match.scores) {
+                    $(`#ep-score-${i}-right`).val(match.scores[match.players.team2[i-1]]);
+                } else {
+                    $(`#ep-score-${i}-right`).val("");
+                }
+            })
+            $("#modal-players-submit").unbind();
+            $("#modal-players-submit").click(() => {
+                var data = {
+                    "secretKey" : $("#modal-secret-key-players").val(),
+                    "matchID" : match.matchID,
+                    players : {
+                        team1 : [],
+                        team2 : [],
+                    }, scores : {}
+                };
+                $.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], (idx, i) => {
+                    data.players.team1.push($(`#ep-name-${idx+1}-left`).val());
+                    data.players.team2.push($(`#ep-name-${idx+1}-right`).val());
+                    data.scores[$(`#ep-name-${idx+1}-left`).val()] = $(`#ep-score-${idx+1}-left`).val();
+                    data.scores[$(`#ep-name-${idx+1}-right`).val()] = $(`#ep-score-${idx+1}-right`).val();
+                })
+                console.log(data);
+                socket.emit("edit players", data);
+            });
+            $("#editPlayersModal").modal("show");
+        });
         $.each(match.players.team1, (index, na) => {
-            $div = $("<div>", {"class":"badge badge-pill badge-primary mr-1 p-1", "style" : "font-size : 13px;"}).text(na);
+            var st;
+            if("scores" in match) { 
+                if(na in match.scores) st = `${na} ${match.scores[na]}`;
+                else st = na;
+            }
+            else st = na;
+            $div = $("<div>", {"class":"badge badge-pill badge-primary mr-1 p-1", "style" : "font-size : 14px;"}).text(st);
             $(`#team1-players-${idx}`).append($div);
         })
         $.each(match.players.team2, (index, na) => {
-            $div = $("<div>", {"class":"badge badge-pill badge-primary mr-1 p-1", "style" : "font-size : 13px;"}).text(na);
+            var st;
+            if("scores" in match) { 
+                if(na in match.scores) st = `${na} ${match.scores[na]}`;
+                else st = na;
+            }
+            else st = na;
+            $div = $("<div>", {"class":"badge badge-pill badge-primary mr-1 p-1", "style" : "font-size : 14px;"}).text(st);
             $(`#team2-players-${idx}`).append($div);
         })
-        $(`#toss-${idx}`).text(match.tossResults);
-        $(`#winner-${idx}`).text(match.matchWinner);
+
         if( match.coverImgHref === null ) $(`#cover-img-${idx}`).text("null");
         else $("#cover-img-1").prepend($('<img>',{id:'coverImg', src:match.coverImgHref, style: "width: 100%"})); // set cover image in grid
         $(`#edit-${idx}`).click(() => {	
@@ -166,6 +215,20 @@ $(document).ready( async () => {
             alert(`Successfully modified points`);
         }
         socket.emit("get user accounts");
+    });
+    socket.on("edit players result", (data) =>{
+        console.log(data);
+        console.log("Got players results");
+        if(data.status === "wrong key") {
+            alert("Secret key entered is invalid");
+        } else if (data.status === "error") {
+            alert("Internal Server Error");
+        } else if(data.status === "no change made") {
+            alert(`No change was made in player data`);
+        } else if(data.status === "success") {
+            alert(data.msg);
+            window.location = window.location;
+        }
     });
     socket.on("declare toss/winner result", (data) => {
         console.log(data);

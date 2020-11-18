@@ -25,6 +25,8 @@ const { getPlayerSelectionStartedStatus,
 	startGame,
 	getGamesAndPlayerSelectionHavingMatchID,
 	levyFine,
+	editPlayers,
+	getPoints,
 	setPlayerStartTime} = require("./utils/dbUtil");
 const e = require('express');
 
@@ -217,6 +219,22 @@ io.on('connection', (socket) => {
 		var result = await editPoints(data.memID, {"points" : data.points, "coins" : data.coins});
 		socket.emit("edit points result", result);
 	})
+
+	socket.on("edit players", async (data) => {
+		console.log("Edit players triggered");
+		if(data.secretKey !== serverSecretKey){
+			socket.emit("edit points result", {status: "wrong key"});
+			return;
+		}
+		var result = await editPlayers(data.matchID, data);
+		socket.emit("edit players result", result);
+	});
+
+	socket.on("get my points", async memID => {
+		console.log(`Get my points triggered ${memID}`);
+		var result = await getPoints(memID);
+		socket.emit("my points", result);
+	});
 
 	socket.on("player selected", async (data) => {
 		// determine if it is a legal selection
