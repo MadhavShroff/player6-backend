@@ -93,8 +93,6 @@ const addSelectionMissed = async (gameID, memID) => { // Adds a -turn missed- to
             { pendingGameID: gameID }, 
             { "$push": pu }, {returnOriginal: false}
         ).then(res => {
-            console.log("After adding Turn missed");
-            console.log(res.value.playerSelection);
             return res.value.playerSelection;
         });
     })
