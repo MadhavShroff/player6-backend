@@ -22,8 +22,8 @@ var clickListener = async (event, contest, member) => {
 	socket.on("my points", (myPoints) => {
 		console.log("my points");
 		member.updateMetaData({ gameState : { "contestChosen" : contest} }).then(() => {
-            window.location = "/select-match/select-match-testing";
-            });
+                   window.location = "/select-match/select-match-testing";
+                   });
 		
 	});
 	socket.emit("get my points", member["id"]);
